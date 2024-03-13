@@ -58,10 +58,18 @@ function MangaListScreen({ navigation }) {
 function ChapterImagesScreen({ route }) {
   const { chapterId } = route.params;
   const [imageUrls, setImageUrls] = useState([]);
+  const [imageHeights, setImageHeights] = useState({});
 
   useEffect(() => {
       fetchChapterImages(chapterId);
   }, [chapterId]);
+
+  const handleImageLoaded = (index, event) => {
+    const { width, height } = event.nativeEvent.source;
+    const scaleFactor = width / screenWidth;
+    const imageHeight = height / scaleFactor;
+    setImageHeights({ ...imageHeights, [index]: imageHeight });
+  };
 
   const fetchChapterImages = (chapterId) => {
     axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/2/volume/7/chapter/${chapterId}`)
@@ -108,7 +116,10 @@ function ChapterImagesScreen({ route }) {
       <ScrollView style={styles.scrollView}>
           <View style={styles.imageContainer}>
               {imageUrls.map((url, index) => (
-                  <Image key={index} source={{ uri: url }} style={styles.chapterImage} />
+                  <Image key={index}
+                   source={{ uri: url }} 
+                   style={[styles.chapterImage, { height: imageHeights[index] || 200 }]}
+                   onLoad={event => handleImageLoaded(index, event)} />
               ))}
           </View>
       </ScrollView>
@@ -238,11 +249,10 @@ chapterTitle: {
 },
   imageContainer: {
     alignItems: 'center', // Ensure images are stretched to fill the width, if not already by the image styles
-    justifyContent: "space-between"
   },
   chapterImage: {
     width: screenWidth, // Ensure the image fills the width
-    height: 1200,
+    height: screenHeight,
     resizeMode: 'contain', // Maintain the aspect ratio. Consider 'cover' if you want images to fill the screen fully.
   },
   // Consider adding styles for the scrollView to manage the overall background and alignment
