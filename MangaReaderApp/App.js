@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useColorScheme } from 'react-native';
 import { Dimensions } from 'react-native';
 import axios from 'axios';
@@ -6,6 +6,11 @@ import { parseString } from 'react-native-xml2js';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faBookmark as faBookmarkSolid, faStar, faShareAlt, faCheckCircle, faCircle, } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+
 import SettingsScreen from './SettingsScreen';
 import styles from './Styles.js';
 
@@ -45,14 +50,22 @@ function MangaListScreen({ navigation }) {
     };
 
     return (
-        <ScrollView>
-            {mangaList.map((manga) => (
-                <TouchableOpacity key={manga.id} style={dynamicStyles.mangaItem} onPress={() => navigation.navigate('MangaDetail', { manga })}>
-                    <Image source={{ uri: `${BASE_URL}${manga.thumbnail}` }} style={dynamicStyles.thumbnail} />
-                    <Text style={dynamicStyles.title}>{manga.title}</Text>
-                </TouchableOpacity>
-            ))}
-        </ScrollView>
+<ScrollView style={dynamicStyles.mangaListContainer}>
+  {mangaList.map((manga) => (
+    <TouchableOpacity
+      key={manga.id}
+      style={dynamicStyles.mangaListItem}
+      onPress={() => navigation.navigate('MangaDetail', { manga })}
+      activeOpacity={0.7}
+    >
+      <Image
+        source={{ uri: `${BASE_URL}${manga.thumbnail}` }}
+        style={dynamicStyles.mangaListThumbnail}
+      />
+      <Text style={dynamicStyles.mangaListTitle}>{manga.title}</Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
     );
 }
 
@@ -63,15 +76,60 @@ function ChapterImagesScreen({ route }) {
     const colorScheme = useColorScheme();
     const dynamicStyles = styles(colorScheme, screenWidth);
 
+    const scrollViewRef = useRef(); // Reference to ScrollView for programmatically scrolling (if needed)
+
     useEffect(() => {
+        const setChapterInProgressIfNeeded = async () => {
+            try {
+                const progressData = await AsyncStorage.getItem('readingProgress');
+                let progress = progressData ? JSON.parse(progressData) : {};
+    
+                if (progress[chapterId] !== 'completed') {
+                    progress[chapterId] = 'inProgress';
+                    await AsyncStorage.setItem('readingProgress', JSON.stringify(progress));
+                }
+            } catch (error) {
+                console.error('Error setting chapter to inProgress:', error);
+            }
+        };
+    
         fetchChapterImages(chapterId, mangaId);
+        setChapterInProgressIfNeeded();
     }, [chapterId, mangaId]);
 
+    const markChapterAsCompleted = async () => {
+        await updateChapterState(chapterId, 'completed');
+    };
+
+    const handleScroll = ({ nativeEvent }) => {
+        console.log("Scrolling")
+        console.log(isCloseToBottom(nativeEvent))
+        if (isCloseToBottom(nativeEvent)) {
+            markChapterAsCompleted();
+        }
+    };
+
+    const updateChapterState = async (chapterId, state) => {
+        try {
+            const progressData = await AsyncStorage.getItem('readingProgress');
+            let progress = progressData ? JSON.parse(progressData) : {};
+            progress[chapterId] = state;
+            await AsyncStorage.setItem('readingProgress', JSON.stringify(progress));
+        } catch (error) {
+            console.error('Error updating chapter state:', error);
+        }
+    };
+
+    const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
+        const threshold = 50; // Adjust this threshold
+        return layoutMeasurement.height + contentOffset.y >= contentSize.height - threshold;
+    };
+    
     const handleImageLoaded = (index, event) => {
         const { width, height } = event.nativeEvent.source;
         const scaleFactor = width / screenWidth;
         const imageHeight = height / scaleFactor;
-        setImageHeights({ ...imageHeights, [index]: imageHeight });
+        setImageHeights(prevHeights => ({ ...prevHeights, [index]: imageHeight }));
     };
 
     const fetchChapterImages = (chapterId, mangaId) => {
@@ -114,13 +172,20 @@ function ChapterImagesScreen({ route }) {
     };
 
     return (
-        <ScrollView style={dynamicStyles.scrollView}>
+        <ScrollView
+            ref={scrollViewRef}
+            style={dynamicStyles.scrollView}
+            onScroll={handleScroll}
+            scrollEventThrottle={400} // Adjust based on performance
+        >
             <View style={dynamicStyles.imageContainer}>
                 {imageUrls.map((url, index) => (
-                    <Image key={index}
-                    source={{ uri: url }} 
-                    style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
-                    onLoad={event => handleImageLoaded(index, event)} />
+                    <Image
+                        key={index}
+                        source={{ uri: url }} 
+                        style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
+                        onLoad={event => handleImageLoaded(index, event)}
+                    />
                 ))}
             </View>
         </ScrollView>
@@ -130,11 +195,24 @@ function ChapterImagesScreen({ route }) {
 function MangaDetailScreen({ route, navigation }) {
     const { manga } = route.params;
     const [chapters, setChapters] = useState([]);
+    const [isBookmarked, setIsBookmarked] = useState(false);
+    const [readingProgress, setReadingProgress] = useState({});
     const colorScheme = useColorScheme();
     const dynamicStyles = styles(colorScheme, screenWidth);
 
     useEffect(() => {
-        fetchChapters();
+        const fetchReadingProgress = async () => {
+            try {
+              const progressData = await AsyncStorage.getItem('readingProgress');
+              setReadingProgress(progressData ? JSON.parse(progressData) : {});
+            } catch (error) {
+              console.error('Failed to fetch reading progress:', error);
+            }
+          };
+        
+          fetchReadingProgress();
+          fetchChapters();
+          checkBookmarkStatus();
     }, []);
 
     const fetchChapters = () => {
@@ -163,23 +241,62 @@ function MangaDetailScreen({ route, navigation }) {
             });
   };
 
+  const checkBookmarkStatus = async () => {
+    try {
+      const bookmarkedMangas = await AsyncStorage.getItem('bookmarkedMangas');
+      const bookmarks = bookmarkedMangas ? JSON.parse(bookmarkedMangas) : [];
+      setIsBookmarked(bookmarks.some(bookmark => bookmark.id === manga.id));
+    } catch (error) {
+      console.error('Failed to fetch bookmarks:', error);
+    }
+  };
+
+  const toggleBookmark = async () => {
+    try {
+      const bookmarkedMangas = await AsyncStorage.getItem('bookmarkedMangas');
+      let bookmarks = bookmarkedMangas ? JSON.parse(bookmarkedMangas) : [];
+      if (isBookmarked) {
+        bookmarks = bookmarks.filter(bookmark => bookmark.id !== manga.id);
+      } else {
+        bookmarks.push({ id: manga.id, title: manga.title });
+      }
+      await AsyncStorage.setItem('bookmarkedMangas', JSON.stringify(bookmarks));
+      setIsBookmarked(!isBookmarked);
+    } catch (error) {
+      console.error('Failed to update bookmarks:', error);
+    }
+  };
+
   return (
-      <View style={dynamicStyles.container}>
-          <Text style={dynamicStyles.title}>{manga.title}</Text>
-          <Image source={{ uri: `${BASE_URL}${manga.thumbnail}` }} style={dynamicStyles.largeThumbnail} />
-          <Text style={dynamicStyles.subtitle}>Chapters</Text>
-          <ScrollView style={dynamicStyles.chapterList}>
-              {chapters.map((chapter, index) => (
-                  <TouchableOpacity 
-                      key={index} 
-                      style={dynamicStyles.chapterItem}
-                      onPress={() => navigation.navigate('ChapterImages', { chapterId: chapter.id, mangaId: manga.id })}
-                  >
-                      <Text style={dynamicStyles.chapterTitle}>{chapter.title}</Text>
-                  </TouchableOpacity>
-              ))}
-          </ScrollView>
-      </View>
+    <ScrollView style={dynamicStyles.container}>
+<View style={dynamicStyles.mangaDetailsContainer}>
+  <View style={dynamicStyles.mangaImageWrapper}>
+    <Image source={{ uri: `${BASE_URL}${manga.thumbnail}` }} style={dynamicStyles.mangaThumbnail} />
+    <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.bookmarkIconStyle}>
+      <FontAwesomeIcon icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} size={24} />
+    </TouchableOpacity>
+  </View>
+  <Text style={dynamicStyles.mangaTitleStyle}>{manga.title}</Text>
+  <ScrollView style={dynamicStyles.mangaChaptersScroll}>
+    {chapters.map((chapter, index) => (
+    <TouchableOpacity
+        key={index}
+        style={dynamicStyles.mangaChapterItem}
+        onPress={() => navigation.navigate('ChapterImages', { chapterId: chapter.id, mangaId: manga.id })}
+    >
+        <Text style={dynamicStyles.chapterTitleStyle}>{chapter.title}</Text>
+        {readingProgress[chapter.id] === 'inProgress' && (
+        <FontAwesomeIcon icon={faCircle} size={24} color="gold" />
+        )}
+        {readingProgress[chapter.id] === 'completed' && (
+        <FontAwesomeIcon icon={faCheckCircle} size={24} color="#4CAF50" />
+        )}
+    </TouchableOpacity>
+    ))}
+  </ScrollView>
+</View>
+
+    </ScrollView>
   );
 }
 
