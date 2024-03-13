@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useColorScheme } from 'react-native';
 import { Dimensions } from 'react-native';
 import axios from 'axios';
 import { parseString } from 'react-native-xml2js';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import SettingsScreen from './SettingsScreen';
+import styles from './Styles.js';
 
 const BASE_URL = 'https://ftgglin3.oasis.usbx.me'; // Replace with your base URL
 const Stack = createNativeStackNavigator();
@@ -175,79 +178,28 @@ function MangaDetailScreen({ route, navigation }) {
   );
 }
 
-export default function App() {
+export default function App({navigation}) {
+
+    const colorScheme = useColorScheme();
+    const appStyles = styles(colorScheme, screenWidth);
 
     return (
         <NavigationContainer>
-            <Stack.Navigator>
+            <Stack.Navigator
+                screenOptions={{
+                    headerRight: () => (
+                        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                            <Ionicons name="settings" size={24} color="black" />
+                        </TouchableOpacity>
+                    ),
+                }}
+            >
                 <Stack.Screen name="MangaList" component={MangaListScreen} options={{ title: 'Manga List' }} />
                 <Stack.Screen name="MangaDetail" component={MangaDetailScreen} options={{ title: 'Manga Detail' }} />
                 <Stack.Screen name="ChapterImages" component={ChapterImagesScreen} options={{ title: 'Chapter Images' }} />
+                <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
             </Stack.Navigator>
         </NavigationContainer>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: 20,
-    },
-    mangaItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        padding: 10,
-    },
-    thumbnail: {
-        width: 50,
-        height: 50,
-        marginRight: 10,
-    },
-    largeThumbnail: {
-        width: 100,
-        height: 100,
-        marginRight: 10,
-    },
-    title: {
-        fontSize: 16,
-    },
-    subtitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginTop: 10,
-  },
-  chapterItem: {
-      fontSize: 16,
-      marginTop: 5,
-  },
-  chapterList: {
-    marginTop: 10,
-},
-chapterItem: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 5,
-    marginVertical: 5,
-    marginHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-},
-chapterTitle: {
-    fontSize: 16,
-},
-  imageContainer: {
-    alignItems: 'center', // Ensure images are stretched to fill the width, if not already by the image styles
-  },
-  chapterImage: {
-    width: screenWidth, // Ensure the image fills the width
-    resizeMode: 'contain', // Maintain the aspect ratio. Consider 'cover' if you want images to fill the screen fully.
-  },
-  // Consider adding styles for the scrollView to manage the overall background and alignment
-  scrollView: {
-    backgroundColor: '#000', // Optional, consider setting a background color that matches your app theme or images
-  },
-});
