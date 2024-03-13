@@ -6,13 +6,10 @@ import { parseString } from 'react-native-xml2js';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
-
 const BASE_URL = 'https://ftgglin3.oasis.usbx.me'; // Replace with your base URL
 const Stack = createNativeStackNavigator();
 
 const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
 function MangaListScreen({ navigation }) {
     const [mangaList, setMangaList] = useState([]);
@@ -56,13 +53,13 @@ function MangaListScreen({ navigation }) {
 }
 
 function ChapterImagesScreen({ route }) {
-  const { chapterId } = route.params;
+  const { chapterId, mangaId } = route.params;
   const [imageUrls, setImageUrls] = useState([]);
   const [imageHeights, setImageHeights] = useState({});
 
   useEffect(() => {
-      fetchChapterImages(chapterId);
-  }, [chapterId]);
+      fetchChapterImages(chapterId, mangaId);
+  }, [chapterId, mangaId]);
 
   const handleImageLoaded = (index, event) => {
     const { width, height } = event.nativeEvent.source;
@@ -71,8 +68,8 @@ function ChapterImagesScreen({ route }) {
     setImageHeights({ ...imageHeights, [index]: imageHeight });
   };
 
-  const fetchChapterImages = (chapterId) => {
-    axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/2/volume/7/chapter/${chapterId}`)
+  const fetchChapterImages = (chapterId, mangaId) => {
+    axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/${mangaId}/volume/7/chapter/${chapterId}`)
         .then((response) => {
             parseString(response.data, { explicitArray: false, mergeAttrs: true }, (err, result) => {
                 if (err) {
@@ -99,7 +96,7 @@ function ChapterImagesScreen({ route }) {
                 const pageCount = parseInt(streamLink["p5:count"], 10);
                 const urlTemplate = `${BASE_URL}${streamLink.href}`;
                 const imageUrls = Array.from({ length: pageCount }, (_, i) =>
-                    urlTemplate.replace('{pageNumber}', i + 1) // Assuming page numbering starts from 1
+                    urlTemplate.replace('{pageNumber}', i)
                 );
   
                 setImageUrls(imageUrls);
@@ -109,8 +106,6 @@ function ChapterImagesScreen({ route }) {
             console.error('Error fetching chapter images:', error);
         });
   };
-
-
 
   return (
       <ScrollView style={styles.scrollView}>
@@ -125,8 +120,6 @@ function ChapterImagesScreen({ route }) {
       </ScrollView>
   );
 }
-
-
 
 function MangaDetailScreen({ route, navigation }) {
   const { manga } = route.params;
@@ -172,7 +165,7 @@ function MangaDetailScreen({ route, navigation }) {
                   <TouchableOpacity 
                       key={index} 
                       style={styles.chapterItem}
-                      onPress={() => navigation.navigate('ChapterImages', { chapterId: chapter.id })}
+                      onPress={() => navigation.navigate('ChapterImages', { chapterId: chapter.id, mangaId: manga.id })}
                   >
                       <Text style={styles.chapterTitle}>{chapter.title}</Text>
                   </TouchableOpacity>
@@ -182,17 +175,17 @@ function MangaDetailScreen({ route, navigation }) {
   );
 }
 
-
 export default function App() {
-  return (
-      <NavigationContainer>
-          <Stack.Navigator>
-              <Stack.Screen name="MangaList" component={MangaListScreen} options={{ title: 'Manga List' }} />
-              <Stack.Screen name="MangaDetail" component={MangaDetailScreen} options={{ title: 'Manga Detail' }} />
-              <Stack.Screen name="ChapterImages" component={ChapterImagesScreen} options={{ title: 'Chapter Images' }} />
-          </Stack.Navigator>
-      </NavigationContainer>
-  );
+
+    return (
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name="MangaList" component={MangaListScreen} options={{ title: 'Manga List' }} />
+                <Stack.Screen name="MangaDetail" component={MangaDetailScreen} options={{ title: 'Manga Detail' }} />
+                <Stack.Screen name="ChapterImages" component={ChapterImagesScreen} options={{ title: 'Chapter Images' }} />
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -200,7 +193,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
         padding: 20,
-        marginTop: 50
     },
     mangaItem: {
         flexDirection: 'row',
@@ -252,7 +244,6 @@ chapterTitle: {
   },
   chapterImage: {
     width: screenWidth, // Ensure the image fills the width
-    height: screenHeight,
     resizeMode: 'contain', // Maintain the aspect ratio. Consider 'cover' if you want images to fill the screen fully.
   },
   // Consider adding styles for the scrollView to manage the overall background and alignment
