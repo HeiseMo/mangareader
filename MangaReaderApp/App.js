@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useColorScheme } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Dimensions } from 'react-native';
 import axios from 'axios';
 import { parseString } from 'react-native-xml2js';
@@ -10,6 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faBookmark as faBookmarkSolid, faStar, faShareAlt, faCheckCircle, faCircle, } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+import { ThemeProvider } from './ThemeContext'; // Adjust the import path according to your project structure
+import { useTheme } from './ThemeContext'; // Adjust the path as necessary
 
 import SettingsScreen from './SettingsScreen';
 import styles from './Styles.js';
@@ -19,9 +21,11 @@ const Stack = createNativeStackNavigator();
 const screenWidth = Dimensions.get('window').width;
 
 function MangaListScreen({ navigation }) {
+    const { theme } = useTheme(); // Use your custom hook to get the current theme
+    const dynamicStyles = styles(theme, screenWidth);
     const [mangaList, setMangaList] = useState([]);
-    const colorScheme = useColorScheme();
-    const dynamicStyles = styles(colorScheme, screenWidth);
+
+
 
     useEffect(() => {
         fetchManga();
@@ -73,8 +77,8 @@ function ChapterImagesScreen({ route }) {
     const { chapterId, mangaId } = route.params;
     const [imageUrls, setImageUrls] = useState([]);
     const [imageHeights, setImageHeights] = useState({});
-    const colorScheme = useColorScheme();
-    const dynamicStyles = styles(colorScheme, screenWidth);
+    const { theme } = useTheme(); // Use your custom hook to get the current theme
+    const dynamicStyles = styles(theme, screenWidth);
 
     const scrollViewRef = useRef(); // Reference to ScrollView for programmatically scrolling (if needed)
 
@@ -102,8 +106,12 @@ function ChapterImagesScreen({ route }) {
     };
 
     const handleScroll = ({ nativeEvent }) => {
-        console.log("Scrolling")
-        console.log(isCloseToBottom(nativeEvent))
+        console.log("Scrolling");
+        console.log(`Content offset: ${nativeEvent.contentOffset.y}`);
+        console.log(`View height: ${nativeEvent.layoutMeasurement.height}`);
+        console.log(`Content size: ${nativeEvent.contentSize.height}`);
+        console.log(`Is close to bottom: ${isCloseToBottom(nativeEvent)}`);
+    
         if (isCloseToBottom(nativeEvent)) {
             markChapterAsCompleted();
         }
@@ -133,7 +141,7 @@ function ChapterImagesScreen({ route }) {
     };
 
     const fetchChapterImages = (chapterId, mangaId) => {
-        axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/${mangaId}/volume/7/chapter/${chapterId}`)
+        axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/${mangaId}/volume/8/chapter/${chapterId}`)
             .then((response) => {
                 parseString(response.data, { explicitArray: false, mergeAttrs: true }, (err, result) => {
                     if (err) {
@@ -197,8 +205,8 @@ function MangaDetailScreen({ route, navigation }) {
     const [chapters, setChapters] = useState([]);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [readingProgress, setReadingProgress] = useState({});
-    const colorScheme = useColorScheme();
-    const dynamicStyles = styles(colorScheme, screenWidth);
+    const { theme } = useTheme(); // Use your custom hook to get the current theme
+    const dynamicStyles = styles(theme, screenWidth);
 
     useEffect(() => {
           fetchChapters();
@@ -308,6 +316,7 @@ function MangaDetailScreen({ route, navigation }) {
 export default function App() {
 
     return (
+    <ThemeProvider>    
         <NavigationContainer>
             <Stack.Navigator                 
                 screenOptions={({ navigation }) => ({
@@ -324,6 +333,7 @@ export default function App() {
                 <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
             </Stack.Navigator>
         </NavigationContainer>
+    </ThemeProvider>
     );
 }
 

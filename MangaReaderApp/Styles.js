@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
 
-const styles = (colorScheme, screenWidth) => StyleSheet.create({
+const styles = (theme, screenWidth) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colorScheme === 'dark' ? '#1f2023' : '#fafafa',
+        backgroundColor: theme === 'dark' ? '#1f2023' : '#fafafa',
         padding: 20,
     },
     mangaItem: {
@@ -63,7 +63,7 @@ const styles = (colorScheme, screenWidth) => StyleSheet.create({
     },
     mangaDetailsContainer: {
       flex: 1,
-      backgroundColor: colorScheme === 'dark' ? '#1f2023' : '#fafafa',
+      backgroundColor: theme === 'dark' ? '#1f2023' : '#fafafa',
       padding: 20,
     },
     mangaImageWrapper: {
@@ -88,7 +88,7 @@ const styles = (colorScheme, screenWidth) => StyleSheet.create({
     mangaTitleStyle: {
       fontSize: 22,
       fontWeight: 'bold',
-      color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+      color: theme === 'dark' ? '#FFFFFF' : '#000000',
       marginBottom: 10,
       textAlign: 'center',
     },
@@ -99,7 +99,7 @@ const styles = (colorScheme, screenWidth) => StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colorScheme === 'dark' ? '#252829' : '#FFFFFF', // Using a slightly off-black or pure white background
+      backgroundColor: theme === 'dark' ? '#252829' : '#FFFFFF', // Using a slightly off-black or pure white background
       paddingHorizontal: 16,
       paddingVertical: 12, // Slightly more vertical padding for a better touch target
       borderBottomWidth: 0, // Removing the border for a cleaner look
@@ -109,7 +109,7 @@ const styles = (colorScheme, screenWidth) => StyleSheet.create({
     },
     chapterTitleStyle: {
       fontSize: 17, // Slightly larger font size for readability
-      color: colorScheme === 'dark' ? '#E1E1E1' : '#212121', // High contrast text color
+      color: theme === 'dark' ? '#E1E1E1' : '#212121', // High contrast text color
       fontWeight: '500', // Medium font weight for a cleaner appearance
     },
     progressIndicatorContainer: {
@@ -121,12 +121,12 @@ const styles = (colorScheme, screenWidth) => StyleSheet.create({
       // Consider using FontAwesome icons that fit the flat design, such as solid circles or checks
     },
     mangaListContainer: {
-      backgroundColor: colorScheme === 'dark' ? '#1f2023' : '#FFFFFF',
+      backgroundColor: theme === 'dark' ? '#1f2023' : '#FFFFFF',
     },
     mangaListItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colorScheme === 'dark' ? '#2a2b2e' : '#f9f9f9',
+      backgroundColor: theme === 'dark' ? '#2a2b2e' : '#f9f9f9',
       borderRadius: 10,
       marginVertical: 8,
       marginHorizontal: 16,
@@ -145,7 +145,7 @@ const styles = (colorScheme, screenWidth) => StyleSheet.create({
     },
     mangaListTitle: {
       fontSize: 18,
-      color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+      color: theme === 'dark' ? '#FFFFFF' : '#000000',
       fontWeight: '600',
       flexShrink: 1,
     },
