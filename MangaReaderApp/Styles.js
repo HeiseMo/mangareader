@@ -1,11 +1,18 @@
 import { StyleSheet } from 'react-native';
 
-const styles = (theme, screenWidth) => StyleSheet.create({
+const styles = (theme, screenWidth) => {
+  const isDark = theme === 'dark';
+  const backgroundColor = isDark ? '#010101' : '#F2F2F2';
+  const textColor = isDark ? '#FFFFFF' : '#000000';
+  const containerColor = isDark ? '#161B22' : '#F2F2F2';
+  const colorBorder = '#ccc';
+
+return StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme === 'dark' ? '#010101' : '#F2F2F2',
+        backgroundColor: backgroundColor,
         padding: 20,
-        color: theme === 'dark' ? '#FFFFFF' : '#000000',
+        color: textColor,
     },
     mangaItem: {
         flexDirection: 'row',
@@ -15,10 +22,10 @@ const styles = (theme, screenWidth) => StyleSheet.create({
         padding: 10,
     },
     largeThumbnail: {
-      width: '100%',
-      height: 300,
-      resizeMode: 'cover',
-    },
+      width: '100%', // Full width of the item
+      aspectRatio: 3 / 4, // Maintain aspect ratio of thumbnails
+      resizeMode: 'contain', // Cover the item area completely
+  },
     title: {
         fontSize: 16,
     },
@@ -59,7 +66,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
     },
     mangaDetailsContainer: {
       flex: 1,
-      backgroundColor: theme === 'dark' ? '#1f2023' : '#fafafa',
+      backgroundColor: theme === 'dark' ? '#010101' : '#F2F2F2',
       padding: 20,
     },
     mangaImageWrapper: {
@@ -68,23 +75,29 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       alignItems: 'center',
     },
     mangaThumbnail: {
-      width: screenWidth - 40, // Adjust for padding
-      borderRadius: 10,
-      resizeMode: 'cover',
-      aspectRatio: 0.8
+      width: '50%', // Full width of the item
+      aspectRatio: 3 / 4, // Maintain aspect ratio of thumbnails
+      resizeMode: 'contain', // Cover the item area completely
+    },
+    generalBookmarkIcon: {
+      backgroundColor: containerColor,
+      color: theme === 'dark' ? 'gold' : 'gold',
     },
     bookmarkIconStyle: {
       position: 'absolute',
-      right: 0,
+      right: 10,
       top: 10,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      padding: 8,
-      borderRadius: 50,
+      color: textColor,
+      borderColor : 'white',
+      padding: 16,
+      borderRadius: 10,
+      borderWidth: 0,
+      backgroundColor: containerColor,
     },
     mangaTitleStyle: {
       fontSize: 22,
       fontWeight: 'bold',
-      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      color: textColor,
       marginBottom: 10,
       textAlign: 'center',
     },
@@ -95,7 +108,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: theme === 'dark' ? '#252829' : '#FFFFFF', // Using a slightly off-black or pure white background
+      backgroundColor: containerColor, // Using a slightly off-black or pure white background
       paddingHorizontal: 16,
       paddingVertical: 12, // Slightly more vertical padding for a better touch target
       borderBottomWidth: 0, // Removing the border for a cleaner look
@@ -117,33 +130,43 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       // Consider using FontAwesome icons that fit the flat design, such as solid circles or checks
     },
     mangaListContainer: {
-      backgroundColor: theme === 'dark' ? '#1f2023' : '#FFFFFF',
+      flex: 1,
+      backgroundColor: theme === 'dark' ? '#010101' : '#F2F2F2',
     },
     mangaListItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme === 'dark' ? '#2a2b2e' : '#f9f9f9',
-      borderRadius: 10,
-      marginVertical: 10,
-      marginHorizontal: 16,
-      padding: 10,
+      flex: 1,
+      margin: 5, // Add margins for spacing between grid items
+      borderRadius: 10, // Rounded corners for thumbnails
+      height: 330,
+      overflow: 'hidden', // Ensures the borderRadius is applied to the child Image
+      backgroundColor: theme === 'dark' ? '#161B22' : 'white',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 3,
-      elevation: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+
     },
     mangaListThumbnail: {
-      height: 200,
-      borderRadius: 10,
-      marginRight: 10,
-      aspectRatio: 0.8,
+      width: '100%', // Full width of the item
+      aspectRatio: 3 / 4, // Maintain aspect ratio of thumbnails
+      resizeMode: 'contain', // Cover the item area completely
     },
     mangaListTitle: {
       fontSize: 18,
-      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      color: textColor,
       fontWeight: '600',
       flexShrink: 1,
+    },
+    searchBarContainer: {
+      padding: 10,
+    },
+    searchBar: {
+      height: 40,
+      backgroundColor: theme === 'dark' ? '#161B22' : 'white',
+      color: textColor,
+      borderRadius: 10,
+      paddingHorizontal: 10,
     },
     chapterIndicatorInProgress: {
       color: 'gold', // Using a more vibrant yellow for the in-progress indicator
@@ -158,7 +181,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       marginBottom: 5,
       marginLeft: 20,
       letterSpacing: -0.5,
-      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      color: textColor,
       
   },
 
@@ -169,12 +192,12 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       paddingVertical: 25,
       paddingHorizontal: 20,
       borderColor: '#ccc',
-      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      color: textColor,
       selectedButtonColor: 'white'
   },
   settingsText: {
-      fontSize: 16,
-      color: theme === 'dark' ? '#FFFFFF' : '#9e9e9e',
+      fontSize: 14,
+      color: "#9e9e9e",
   },
   radioGroup: {
     height: "20%",
@@ -182,7 +205,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
     backgroundColor: theme === 'dark' ? '#161B22' : 'white',
     justifyContent: 'center',
     borderRadius: 5, // Adjust this value as needed for the desired curvature
-    borderColor: theme === 'dark' ? '#E6EDF3' : '#ccc',// Sets the border color
+    borderColor: theme === 'dark' ? '#606266' : '#ccc',// Sets the border color
     borderWidth: 1, // You need to specify a borderWidth to show the border
 },
   settingsGroup:{
@@ -191,7 +214,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
     paddingVertical: 5,
     backgroundColor: theme === 'dark' ? '#161B22' : 'white',
     borderRadius: 10, // Adjust this value as needed for the desired curvature
-    borderColor: theme === 'dark' ? '#ccc' : '#ccc',// Sets the border color
+    borderColor: theme === 'dark' ? '#606266' : '#ccc',// Sets the border color
     borderWidth: 1, // You need to specify a borderWidth to show the border
   },
   infoGroup:{
@@ -200,7 +223,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
     backgroundColor: theme === 'dark' ? '#161B22' : 'white',
     justifyContent: 'center',
     borderRadius: 5, // Adjust this value as needed for the desired curvature
-    borderColor: theme === 'dark' ? '#ccc' : '#ccc',// Sets the border color
+    borderColor: theme === 'dark' ? '#606266' : '#ccc',// Sets the border color
     borderWidth: 1, // You need to specify a borderWidth to show the border
     color: "#9e9e9e"
   },
@@ -232,7 +255,7 @@ radioButtonSelected: {
   },
   buttonText: {
       fontSize: 16,
-      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      color: textColor,
   },
   infoText: {
       fontSize: 12,
@@ -243,9 +266,9 @@ radioButtonSelected: {
   },
   horizontalLine: {
     height: 1, // Thin line
-    backgroundColor: '#E0E0E0', // Light grey color, adjust based on your theme or preference
+    backgroundColor: '#606266', // Light grey color, adjust based on your theme or preference
     marginVertical: 8, // Provides vertical space around the line, adjust as needed
   },
   });
-
+}
 export default styles;
