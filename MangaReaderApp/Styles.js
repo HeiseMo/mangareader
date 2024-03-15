@@ -5,6 +5,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
         flex: 1,
         backgroundColor: theme === 'dark' ? '#1f2023' : '#fafafa',
         padding: 20,
+        color: theme === 'dark' ? '#FFFFFF' : '#000000',
     },
     mangaItem: {
         flexDirection: 'row',
@@ -155,6 +156,77 @@ const styles = (theme, screenWidth) => StyleSheet.create({
     chapterIndicatorCompleted: {
       color: '#4CAF50', // A vibrant green for the completed indicator
     },
+    headerText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginTop: 20,
+      marginBottom: 10,
+      marginLeft: 20,
+      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      
+  },
+
+  settingsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: '#ccc',
+      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      selectedButtonColor: 'white'
+  },
+  settingsText: {
+      fontSize: 16,
+      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+  },
+  radioGroup: {
+    height: "15%",
+    width: "99%",
+    backgroundColor: theme === 'dark' ? '#5b5d66' : 'white',
+    justifyContent: 'center',
+    borderRadius: 20, // Adjust this value as needed for the desired curvature
+    borderColor: theme === 'dark' ? 'white' : '#5b5d66',// Sets the border color
+    borderWidth: 1, // You need to specify a borderWidth to show the border
+},
+  radioButton: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      borderColor:  '#8388A4',
+      backgroundColor: "#FFFFFF",
+      alignItems: 'center',
+      justifyContent: 'center',
+      selectedButtonColor: 'white'
+  },
+  radioButtonSelected: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: '#8388A4',
+  },
+  button: {
+      marginHorizontal: 20,
+      paddingVertical: 12,
+      backgroundColor: '#ED5E68',
+      alignItems: 'center',
+      borderRadius: 10,
+      marginTop: 10,
+  },
+  buttonText: {
+      fontSize: 16,
+      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+  },
+  infoText: {
+      fontSize: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: '#ccc',
+      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+  },
   });
 
 export default styles;
