@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, View, TouchableOpacity, Image, Text } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Image, Text, FlatList } from 'react-native';
 import { Dimensions } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -99,21 +99,25 @@ function ChapterImagesScreen({ route }) {
     };
 
     return (
-        <ScrollView
+        <FlatList
+            ref={scrollViewRef}
             style={dynamicStyles.scrollView}
-            scrollEventThrottle={400} // Adjust based on performance
-        >
-            <View style={dynamicStyles.imageContainer}>
-                {imageUrls.map((url, index) => (
-                    <Image
-                        key={index}
-                        source={{ uri: url }} 
-                        style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
-                        onLoad={event => handleImageLoaded(index, event)}
-                    />
-                ))}
-            </View>
-        </ScrollView>
+            data={imageUrls}
+            renderItem={({ item, index }) => (
+                <Image
+                    key={index}
+                    source={{ uri: item }} 
+                    style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
+                    onLoad={event => handleImageLoaded(index, event)}
+                />
+            )}
+            onEndReachedThreshold={0.5}
+            onEndReached={({ distanceFromEnd }) => {
+                if (distanceFromEnd === 0) {
+                    markChapterAsCompleted();
+                }
+            }}
+        />
     );
 }
 

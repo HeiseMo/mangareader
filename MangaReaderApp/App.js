@@ -16,14 +16,13 @@ const Stack = createNativeStackNavigator();
 export default function App() {
 
     return (
-    
+    <ThemeProvider>
         <NavigationContainer>
             <Stack.Navigator
                 screenOptions={({ navigation }) => ({
-                    headerStyle: styles.headerStyle,
                     headerRight: () => (
                         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                            <Ionicons name="settings" size={24} color={theme === 'light' ? 'black' : 'white'} />
+                            <Ionicons name="settings" size={24} color='black' />
                         </TouchableOpacity>
                     ),
                 })}
@@ -34,7 +33,7 @@ export default function App() {
                 <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
             </Stack.Navigator>
         </NavigationContainer>
-    
+        </ThemeProvider>
     );
 }
 
