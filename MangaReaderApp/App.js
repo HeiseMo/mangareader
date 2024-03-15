@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useColorScheme } from 'react-native';
 import { Dimensions } from 'react-native';
 import axios from 'axios';
 import { parseString } from 'react-native-xml2js';
@@ -10,8 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faBookmark as faBookmarkSolid, faStar, faShareAlt, faCheckCircle, faCircle, } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
-import { ThemeProvider } from './ThemeContext'; // Adjust the import path according to your project structure
-import { useTheme } from './ThemeContext'; // Adjust the path as necessary
+import { ThemeProvider, useTheme } from './ThemeContext'; // Adjust the import path according to your project structure
+
 
 import SettingsScreen from './SettingsScreen';
 import styles from './Styles.js';
@@ -180,23 +180,25 @@ function ChapterImagesScreen({ route }) {
     };
 
     return (
-        <ScrollView
+        <FlatList
             ref={scrollViewRef}
             style={dynamicStyles.scrollView}
-            onScroll={handleScroll}
-            scrollEventThrottle={400} // Adjust based on performance
-        >
-            <View style={dynamicStyles.imageContainer}>
-                {imageUrls.map((url, index) => (
-                    <Image
-                        key={index}
-                        source={{ uri: url }} 
-                        style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
-                        onLoad={event => handleImageLoaded(index, event)}
-                    />
-                ))}
-            </View>
-        </ScrollView>
+            data={imageUrls}
+            renderItem={({ item, index }) => (
+                <Image
+                    key={index}
+                    source={{ uri: item }} 
+                    style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
+                    onLoad={event => handleImageLoaded(index, event)}
+                />
+            )}
+            onEndReachedThreshold={0.5}
+            onEndReached={({ distanceFromEnd }) => {
+                if (distanceFromEnd === 0) {
+                    markChapterAsCompleted();
+                }
+            }}
+        />
     );
 }
 
@@ -313,16 +315,19 @@ function MangaDetailScreen({ route, navigation }) {
   );
 }
 
+
+
 export default function App() {
 
     return (
-    <ThemeProvider>    
+    
         <NavigationContainer>
-            <Stack.Navigator                 
+            <Stack.Navigator
                 screenOptions={({ navigation }) => ({
+                    headerStyle: styles.headerStyle,
                     headerRight: () => (
                         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                            <Ionicons name="settings" size={24} color="black" />
+                            <Ionicons name="settings" size={24} color={theme === 'light' ? 'black' : 'white'} />
                         </TouchableOpacity>
                     ),
                 })}
@@ -333,7 +338,7 @@ export default function App() {
                 <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
             </Stack.Navigator>
         </NavigationContainer>
-    </ThemeProvider>
+    
     );
 }
 
