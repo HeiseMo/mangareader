@@ -43,6 +43,7 @@ function ChapterImagesScreen({ route }) {
 
     const updateChapterState = async (chapterId, state) => {
         try {
+            console.log(`Updating chapter state for ${chapterId} to ${state}`);
             const progressData = await AsyncStorage.getItem('readingProgress');
             let progress = progressData ? JSON.parse(progressData) : {};
             progress[chapterId] = state;
@@ -56,17 +57,23 @@ function ChapterImagesScreen({ route }) {
         const { width, height } = event.nativeEvent.source;
         const scaleFactor = width / screenWidth;
         const imageHeight = height / scaleFactor;
+        console.log(`Image loaded at index ${index}: original height = ${height}, scaled height = ${imageHeight}`);
         setImageHeights(prevHeights => ({ ...prevHeights, [index]: imageHeight }));
     };
 
     const fetchChapterImages = (chapterId, mangaId) => {
+        console.log(`Fetching chapter images for mangaId: ${mangaId}, chapterId: ${chapterId}`);
         axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/${mangaId}/volume/8/chapter/${chapterId}`)
             .then((response) => {
+                console.log(`Response received for chapter images.`);
                 parseString(response.data, { explicitArray: false, mergeAttrs: true }, (err, result) => {
                     if (err) {
                         console.error('Error parsing XML:', err);
                         return;
                     }
+    
+                    // Debugging the parsed result
+                    console.log(`Parsed result for chapter images:`, result);
     
                     // Assuming result.feed.entry is directly accessible and correctly parsed
                     const entry = result.feed.entry;
@@ -113,7 +120,8 @@ function ChapterImagesScreen({ route }) {
             )}
             onEndReachedThreshold={0.5}
             onEndReached={({ distanceFromEnd }) => {
-                if (distanceFromEnd === 0) {
+                console.log(`onEndReached called with distance from end: ${distanceFromEnd}`);
+                if (distanceFromEnd >= 0) { // Adjusted to >= 0 to catch any positive value.
                     markChapterAsCompleted();
                 }
             }}
