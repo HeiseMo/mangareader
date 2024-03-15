@@ -21,6 +21,7 @@ function MangaDetailScreen({ route, navigation }) {
     const [readingProgress, setReadingProgress] = useState({});
     const { theme } = useTheme(); // Use your custom hook to get the current theme
     const dynamicStyles = styles(theme, screenWidth);
+    const [chapterTitle, setChapterTitle] = useState('');
 
     useEffect(() => {
           fetchChapters();
@@ -49,6 +50,7 @@ function MangaDetailScreen({ route, navigation }) {
                             // Add other chapter details you need here
                         }));
                         setChapters(formattedChapters);
+                        
                     } else {
                         setChapters([]);
                     }
@@ -109,7 +111,7 @@ function MangaDetailScreen({ route, navigation }) {
             <TouchableOpacity
                 key={index}
                 style={dynamicStyles.mangaChapterItem}
-                onPress={() => navigation.navigate('ChapterImages', { chapterId: chapter.id, mangaId: manga.id })}
+                onPress={() => navigation.navigate('ChapterImages', { chapterId: chapter.id, mangaId: manga.id, title: chapter.title.replace(/^.*?(\d+).*$/, 'Chapter $1') })}
             >
                 <Text style={dynamicStyles.chapterTitleStyle}>{chapter.title}</Text>
                 {readingProgress[chapter.id] === 'inProgress' && (
