@@ -33,7 +33,7 @@ function MangaDetailScreen({ route, navigation }) {
             fetchReadingProgress();
         }, [])
     );
-
+        console.log(manga)
     const fetchChapters = () => {
         axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/${manga.id}`)
             .then(response => {
@@ -100,9 +100,9 @@ function MangaDetailScreen({ route, navigation }) {
     <ScrollView style={dynamicStyles.container}>
         <View style={dynamicStyles.mangaDetailsContainer}>
         <View style={dynamicStyles.mangaImageWrapper}>
-            <Image source={{ uri: `${BASE_URL}${manga.thumbnail}` }} style={dynamicStyles.mangaThumbnail} />
+            <Image source={{ uri: `${BASE_URL}${manga.thumbnail}&cacheBuster=${Date.now()}` }} style={dynamicStyles.mangaThumbnail} />
             <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.bookmarkIconStyle}>
-            <FontAwesomeIcon icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} size={24} />
+            <FontAwesomeIcon style={dynamicStyles.generalBookmarkIcon} icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} size={24} />
             </TouchableOpacity>
         </View>
         <Text style={dynamicStyles.mangaTitleStyle}>{manga.title}</Text>
