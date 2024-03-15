@@ -50,7 +50,7 @@ function MangaListScreen({ navigation }) {
                 activeOpacity={0.7}
                 >
                 <Image
-                    source={{ uri: `${BASE_URL}${manga.thumbnail}` }}
+                    source={{ uri: `${BASE_URL}${manga.thumbnail}`}}
                     style={dynamicStyles.mangaListThumbnail}
                 />
                     <Text style={dynamicStyles.mangaListTitle}>{manga.title}</Text>
@@ -59,5 +59,6 @@ function MangaListScreen({ navigation }) {
         </ScrollView>
     );
 }
+
 
 export default MangaListScreen;

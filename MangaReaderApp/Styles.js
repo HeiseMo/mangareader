@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 const styles = (theme, screenWidth) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme === 'dark' ? '#1f2023' : '#fafafa',
+        backgroundColor: theme === 'dark' ? '#010101' : '#F2F2F2',
         padding: 20,
         color: theme === 'dark' ? '#FFFFFF' : '#000000',
     },
@@ -13,11 +13,6 @@ const styles = (theme, screenWidth) => StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
         padding: 10,
-    },
-    thumbnail: {
-        width: 50,
-        height: 50,
-        marginRight: 10,
     },
     largeThumbnail: {
       width: '100%',
@@ -74,9 +69,9 @@ const styles = (theme, screenWidth) => StyleSheet.create({
     },
     mangaThumbnail: {
       width: screenWidth - 40, // Adjust for padding
-      height: 300,
       borderRadius: 10,
       resizeMode: 'cover',
+      aspectRatio: 0.8
     },
     bookmarkIconStyle: {
       position: 'absolute',
@@ -129,7 +124,7 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       alignItems: 'center',
       backgroundColor: theme === 'dark' ? '#2a2b2e' : '#f9f9f9',
       borderRadius: 10,
-      marginVertical: 8,
+      marginVertical: 10,
       marginHorizontal: 16,
       padding: 10,
       shadowColor: '#000',
@@ -139,10 +134,10 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       elevation: 2,
     },
     mangaListThumbnail: {
-      width: 70,
-      height: 70,
+      height: 200,
       borderRadius: 10,
       marginRight: 10,
+      aspectRatio: 0.8,
     },
     mangaListTitle: {
       fontSize: 18,
@@ -157,11 +152,12 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       color: '#4CAF50', // A vibrant green for the completed indicator
     },
     headerText: {
-      fontSize: 18,
-      fontWeight: 'bold',
+      fontSize: 16,
+      fontWeight: "900",
       marginTop: 20,
-      marginBottom: 10,
+      marginBottom: 5,
       marginLeft: 20,
+      letterSpacing: -0.5,
       color: theme === 'dark' ? '#FFFFFF' : '#000000',
       
   },
@@ -170,44 +166,63 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingVertical: 12,
+      paddingVertical: 25,
       paddingHorizontal: 20,
-      borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: '#ccc',
       color: theme === 'dark' ? '#FFFFFF' : '#000000',
       selectedButtonColor: 'white'
   },
   settingsText: {
       fontSize: 16,
-      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      color: theme === 'dark' ? '#FFFFFF' : '#9e9e9e',
   },
   radioGroup: {
-    height: "15%",
+    height: "20%",
     width: "99%",
-    backgroundColor: theme === 'dark' ? '#5b5d66' : 'white',
+    backgroundColor: theme === 'dark' ? '#161B22' : 'white',
     justifyContent: 'center',
-    borderRadius: 20, // Adjust this value as needed for the desired curvature
-    borderColor: theme === 'dark' ? 'white' : '#5b5d66',// Sets the border color
+    borderRadius: 5, // Adjust this value as needed for the desired curvature
+    borderColor: theme === 'dark' ? '#E6EDF3' : '#ccc',// Sets the border color
     borderWidth: 1, // You need to specify a borderWidth to show the border
 },
+  settingsGroup:{
+    height: "50%",
+    width: "99%",
+    paddingVertical: 5,
+    backgroundColor: theme === 'dark' ? '#161B22' : 'white',
+    borderRadius: 10, // Adjust this value as needed for the desired curvature
+    borderColor: theme === 'dark' ? '#ccc' : '#ccc',// Sets the border color
+    borderWidth: 1, // You need to specify a borderWidth to show the border
+  },
+  infoGroup:{
+    height: "10%",
+    width: "99%",
+    backgroundColor: theme === 'dark' ? '#161B22' : 'white',
+    justifyContent: 'center',
+    borderRadius: 5, // Adjust this value as needed for the desired curvature
+    borderColor: theme === 'dark' ? '#ccc' : '#ccc',// Sets the border color
+    borderWidth: 1, // You need to specify a borderWidth to show the border
+    color: "#9e9e9e"
+  },
   radioButton: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      borderWidth: 2,
-      borderColor:  '#8388A4',
-      backgroundColor: "#FFFFFF",
-      alignItems: 'center',
-      justifyContent: 'center',
-      selectedButtonColor: 'white'
-  },
-  radioButtonSelected: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      backgroundColor: '#8388A4',
-  },
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: theme === 'dark' ? '#FFFFFF' : '#010101', // Adjust the border color based on the theme
+    alignItems: 'center',
+    justifyContent: 'center',
+},
+radioButtonSelected: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: theme === 'dark' ? '#F2F2F2' : '#010101', // Adjust the selected background color based on the theme
+    alignItems: 'center',
+    justifyContent: 'center',
+},
   button: {
+      width: "50%",
       marginHorizontal: 20,
       paddingVertical: 12,
       backgroundColor: '#ED5E68',
@@ -220,12 +235,16 @@ const styles = (theme, screenWidth) => StyleSheet.create({
       color: theme === 'dark' ? '#FFFFFF' : '#000000',
   },
   infoText: {
-      fontSize: 16,
-      paddingVertical: 12,
+      fontSize: 12,
+      paddingVertical: 4,
       paddingHorizontal: 20,
-      borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: '#ccc',
-      color: theme === 'dark' ? '#FFFFFF' : '#000000',
+      color: theme === 'dark' ? '#cccccc' : '#9e9e9e',
+  },
+  horizontalLine: {
+    height: 1, // Thin line
+    backgroundColor: '#E0E0E0', // Light grey color, adjust based on your theme or preference
+    marginVertical: 8, // Provides vertical space around the line, adjust as needed
   },
   });
 
