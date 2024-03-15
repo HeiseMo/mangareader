@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from './ThemeContext'; // Adjust the import path
+import { useTheme } from '../ThemeContext'; // Adjust the import path
 
 export default function SettingsScreen() {
     const { toggleTheme } = useTheme();
