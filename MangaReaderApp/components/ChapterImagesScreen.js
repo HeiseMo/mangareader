@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, View, TouchableOpacity, Image, Text, FlatList } from 'react-native';
-import { Dimensions } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Text, FlatList, Dimensions } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parseString } from 'react-native-xml2js';
 import { useTheme } from '../ThemeContext'; // Adjust the import path according to your project structure
 import styles from '../Styles.js';
 import { BASE_URL } from '../constants'; // Adjust the path according to where you placed the constants.js file
+import { Image } from 'expo-image';
 
 const screenWidth = Dimensions.get('window').width;
+const blurhash =
+  '|rF[';
 function ChapterImagesScreen({ route }) {
     const { chapterId, mangaId } = route.params;
     const [imageUrls, setImageUrls] = useState([]);
@@ -54,7 +56,7 @@ function ChapterImagesScreen({ route }) {
     };
     
     const handleImageLoaded = (index, event) => {
-        const { width, height } = event.nativeEvent.source;
+        const { width, height } = event.source;
         const scaleFactor = width / screenWidth;
         const imageHeight = height / scaleFactor;
         setImageHeights(prevHeights => ({ ...prevHeights, [index]: imageHeight }));
@@ -70,7 +72,6 @@ function ChapterImagesScreen({ route }) {
                         console.error('Error parsing XML:', err);
                         return;
                     }
-    
                     // Debugging the parsed result
                     console.log(`Parsed result for chapter images:`, result);
     
@@ -80,7 +81,6 @@ function ChapterImagesScreen({ route }) {
                         console.error('No entry found in the response:', result);
                         return;
                     }
-    
                     // Look for the specific link with streaming information
                     const streamLink = entry.link.find(link => link.rel === "http://vaemendis.net/opds-pse/stream" && link.type === "image/jpeg");
     
@@ -91,7 +91,7 @@ function ChapterImagesScreen({ route }) {
     
                     // Parse the pageCount and generate image URLs
                     const pageCount = parseInt(streamLink["p5:count"], 10);
-                    const urlTemplate = `${BASE_URL}${streamLink.href}&cacheBuster=${Date.now()}`;
+                    const urlTemplate = `${BASE_URL}${streamLink.href}`;
                     const imageUrls = Array.from({ length: pageCount }, (_, i) =>
                         urlTemplate.replace('{pageNumber}', i)
                     );
@@ -107,12 +107,15 @@ function ChapterImagesScreen({ route }) {
     return (
         <FlatList
             ref={scrollViewRef}
+            initialNumToRender={2}
+            windowSize={21}
             style={dynamicStyles.scrollView}
             data={imageUrls}
             renderItem={({ item, index }) => (
                 <Image
                     key={index}
-                    source={{ uri: item }} 
+                    source={{ uri: item }}
+                    placeholder={blurhash}
                     style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
                     onLoad={event => handleImageLoaded(index, event)}
                 />

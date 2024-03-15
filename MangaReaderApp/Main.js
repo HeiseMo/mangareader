@@ -40,7 +40,13 @@ export default function Main() {
                     >
                     <Stack.Screen name="MangaList" component={MangaListScreen} options={{ title: 'Manga List' }} />
                     <Stack.Screen name="MangaDetail" component={MangaDetailScreen} options={{ title: 'Manga Detail' }} />
-                    <Stack.Screen name="ChapterImages" component={ChapterImagesScreen} options={{ title: 'Chapter Images' }} />
+                    <Stack.Screen
+                        name="ChapterImages"
+                        component={ChapterImagesScreen}
+                        options={({ route }) => ({
+                            title: route.params.title, // Set the header title dynamically based on the passed title
+                        })} 
+                    />
                     <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
                 </Stack.Navigator>
             </NavigationContainer>
