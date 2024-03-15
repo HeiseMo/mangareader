@@ -21,16 +21,23 @@ export default function Main() {
 
     return (
         // Directly using ThemeProvider here to wrap the NavigationContainer
-            <NavigationContainer>
-                <Stack.Navigator
-                    screenOptions={({ navigation }) => ({
-                        headerRight: () => (
-                            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                                <Ionicons name="settings" size={24} color="black" />
-                            </TouchableOpacity>
-                        ),
-                    })}
-                >
+                <NavigationContainer>
+                    <Stack.Navigator
+                        screenOptions={({ navigation }) => ({
+                            headerStyle: {
+                                backgroundColor: theme === 'light' ? 'white' : 'black',
+                            },
+                            headerTintColor: theme === 'light' ? 'black' : 'white',
+                            headerTitleStyle: {
+                                color: theme === 'light' ? 'black' : 'white',
+                            },
+                            headerRight: () => (
+                                <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                                    <Ionicons name="settings" size={24} color={theme === 'light' ? 'black' : 'white'} />
+                                </TouchableOpacity>
+                            ),
+                        })}
+                    >
                     <Stack.Screen name="MangaList" component={MangaListScreen} options={{ title: 'Manga List' }} />
                     <Stack.Screen name="MangaDetail" component={MangaDetailScreen} options={{ title: 'Manga Detail' }} />
                     <Stack.Screen name="ChapterImages" component={ChapterImagesScreen} options={{ title: 'Chapter Images' }} />
