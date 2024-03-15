@@ -15,7 +15,6 @@ function ChapterImagesScreen({ route }) {
     const [imageHeights, setImageHeights] = useState({});
     const { theme } = useTheme(); // Use your custom hook to get the current theme
     const dynamicStyles = styles(theme, screenWidth);
-
     const scrollViewRef = useRef(); // Reference to ScrollView for programmatically scrolling (if needed)
 
     useEffect(() => {
@@ -32,9 +31,10 @@ function ChapterImagesScreen({ route }) {
                 console.error('Error setting chapter to inProgress:', error);
             }
         };
-    
+
         fetchChapterImages(chapterId, mangaId);
         setChapterInProgressIfNeeded();
+        
     }, [chapterId, mangaId]);
 
     const markChapterAsCompleted = async () => {
@@ -57,13 +57,12 @@ function ChapterImagesScreen({ route }) {
         const { width, height } = event.nativeEvent.source;
         const scaleFactor = width / screenWidth;
         const imageHeight = height / scaleFactor;
-        console.log(`Image loaded at index ${index}: original height = ${height}, scaled height = ${imageHeight}`);
         setImageHeights(prevHeights => ({ ...prevHeights, [index]: imageHeight }));
     };
 
     const fetchChapterImages = (chapterId, mangaId) => {
         console.log(`Fetching chapter images for mangaId: ${mangaId}, chapterId: ${chapterId}`);
-        axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/${mangaId}/volume/8/chapter/${chapterId}`)
+        axios.get(`${BASE_URL}/kavita/api/opds/a828d819-35d0-4810-8cc8-9feaaf440123/series/${mangaId}/volume/8/chapter/${chapterId}`)
             .then((response) => {
                 console.log(`Response received for chapter images.`);
                 parseString(response.data, { explicitArray: false, mergeAttrs: true }, (err, result) => {
@@ -92,7 +91,7 @@ function ChapterImagesScreen({ route }) {
     
                     // Parse the pageCount and generate image URLs
                     const pageCount = parseInt(streamLink["p5:count"], 10);
-                    const urlTemplate = `${BASE_URL}${streamLink.href}`;
+                    const urlTemplate = `${BASE_URL}${streamLink.href}&cacheBuster=${Date.now()}`;
                     const imageUrls = Array.from({ length: pageCount }, (_, i) =>
                         urlTemplate.replace('{pageNumber}', i)
                     );
@@ -120,7 +119,6 @@ function ChapterImagesScreen({ route }) {
             )}
             onEndReachedThreshold={0.5}
             onEndReached={({ distanceFromEnd }) => {
-                console.log(`onEndReached called with distance from end: ${distanceFromEnd}`);
                 if (distanceFromEnd >= 0) { // Adjusted to >= 0 to catch any positive value.
                     markChapterAsCompleted();
                 }
