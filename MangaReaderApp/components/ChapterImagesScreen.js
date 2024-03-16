@@ -1,24 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, View, TouchableOpacity, Text, FlatList, Dimensions } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Image, Text, FlatList } from 'react-native';
+import { Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parseString } from 'react-native-xml2js';
-import { useTheme } from '../ThemeContext'; // Adjust the import path according to your project structure
+import { useTheme } from '../ThemeContext'; 
 import styles from '../Styles.js';
-import { BASE_URL } from '../constants'; // Adjust the path according to where you placed the constants.js file
-import { Image } from 'expo-image';
+import { BASE_URL } from '../constants'; 
+import ChapterNavigationShadowBox from './ChapterNavigationShadowBox';
 
 const screenWidth = Dimensions.get('window').width;
-const blurhash =
-  '|rF[';
 function ChapterImagesScreen({ route }) {
-    const { chapterId, mangaId } = route.params;
+    const navigation = useNavigation(); // Hook to get access to the navigation object
+    const { chapterId, mangaId, thumbnail, chapters, title } = route.params;
     const [imageUrls, setImageUrls] = useState([]);
     const [imageHeights, setImageHeights] = useState({});
-    const { theme } = useTheme(); // Use your custom hook to get the current theme
+    const [prevChapterId, setPrevChapterId] = useState(null);
+    const [nextChapterId, setNextChapterId] = useState(null);
+    const { theme } = useTheme(); 
     const dynamicStyles = styles(theme, screenWidth);
     const scrollViewRef = useRef(); // Reference to ScrollView for programmatically scrolling (if needed)
-
     useEffect(() => {
         const setChapterInProgressIfNeeded = async () => {
             try {
@@ -39,6 +41,26 @@ function ChapterImagesScreen({ route }) {
         
     }, [chapterId, mangaId]);
 
+    useEffect(() => {
+        if (chapters) {
+          const currentIndex = chapters.findIndex(ch => ch.id === chapterId.toString());
+
+          const prevChapterId = currentIndex > 0 ? chapters[currentIndex - 1].id : null;
+          const nextChapterId = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1].id : null;
+          console.log(nextChapterId, "next");
+          setPrevChapterId(prevChapterId);
+          setNextChapterId(nextChapterId);
+        } else {
+          console.log('Chapters not defined');
+        }
+      }, [chapterId, chapters]);
+
+      useEffect(() => {
+        if (scrollViewRef.current && imageUrls.length > 0) {
+            // This assumes imageUrls is populated once the new chapter's images are loaded
+            scrollViewRef.current.scrollToOffset({ animated: true, offset: 0 });
+        }
+    }, [imageUrls]); 
     const markChapterAsCompleted = async () => {
         await updateChapterState(chapterId, 'completed');
     };
@@ -56,7 +78,7 @@ function ChapterImagesScreen({ route }) {
     };
     
     const handleImageLoaded = (index, event) => {
-        const { width, height } = event.source;
+        const { width, height } = event.nativeEvent.source;
         const scaleFactor = width / screenWidth;
         const imageHeight = height / scaleFactor;
         setImageHeights(prevHeights => ({ ...prevHeights, [index]: imageHeight }));
@@ -72,6 +94,7 @@ function ChapterImagesScreen({ route }) {
                         console.error('Error parsing XML:', err);
                         return;
                     }
+    
                     // Debugging the parsed result
                     console.log(`Parsed result for chapter images:`, result);
     
@@ -81,6 +104,7 @@ function ChapterImagesScreen({ route }) {
                         console.error('No entry found in the response:', result);
                         return;
                     }
+    
                     // Look for the specific link with streaming information
                     const streamLink = entry.link.find(link => link.rel === "http://vaemendis.net/opds-pse/stream" && link.type === "image/jpeg");
     
@@ -91,7 +115,7 @@ function ChapterImagesScreen({ route }) {
     
                     // Parse the pageCount and generate image URLs
                     const pageCount = parseInt(streamLink["p5:count"], 10);
-                    const urlTemplate = `${BASE_URL}${streamLink.href}`;
+                    const urlTemplate = `${BASE_URL}${streamLink.href}&cacheBuster=${Date.now()}`;
                     const imageUrls = Array.from({ length: pageCount }, (_, i) =>
                         urlTemplate.replace('{pageNumber}', i)
                     );
@@ -101,33 +125,73 @@ function ChapterImagesScreen({ route }) {
             })
             .catch((error) => {
                 console.error('Error fetching chapter images:', error);
-            });
+                if (error.response) {
+                  // The request was made and the server responded with a status code
+                  // that falls out of the range of 2xx
+                  console.error(error.response.data);
+                  console.error(error.response.status);
+                  console.error(error.response.headers);
+                } else if (error.request) {
+                  // The request was made but no response was received
+                  console.error(error.request);
+                } else {
+                  // Something happened in setting up the request that triggered an Error
+                  console.error('Error', error.message);
+                }
+                console.error(error.config);
+              });
     };
+
+    const navigateToChapter = (newChapterId) => {
+        const newChapter = chapters.find(ch => ch.id === newChapterId);
+        if (newChapter) {
+            const newTitle = newChapter.title.replace(/^.*?(\d+).*$/, 'Chapter $1'); // Adjust this to your title format
+            console.log(newTitle, "new title");
+            navigation.setOptions({ title: newTitle }); // Dynamically update the title
+    
+            navigation.navigate('ChapterImages', {
+                chapterId: newChapterId,
+                mangaId: mangaId,
+                thumbnail: thumbnail,
+                chapters: chapters, // Pass the chapters list if needed
+                title: newTitle // Pass the new title for initial render
+            });
+        } else {
+            console.error('Chapter not found');
+        }
+    };
+    
+
+
 
     return (
         <FlatList
             ref={scrollViewRef}
-            initialNumToRender={2}
-            windowSize={21}
             style={dynamicStyles.scrollView}
             data={imageUrls}
             renderItem={({ item, index }) => (
                 <Image
                     key={index}
-                    source={{ uri: item }}
-                    placeholder={blurhash}
+                    source={{ uri: item }} 
                     style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
                     onLoad={event => handleImageLoaded(index, event)}
                 />
             )}
             onEndReachedThreshold={0.5}
             onEndReached={({ distanceFromEnd }) => {
-                if (distanceFromEnd >= 0) { // Adjusted to >= 0 to catch any positive value.
+                if (distanceFromEnd >= 0) {
                     markChapterAsCompleted();
                 }
             }}
+            ListFooterComponent={() => (
+                <ChapterNavigationShadowBox
+                    onPreviousChapter={() => navigateToChapter(prevChapterId)}
+                    onNextChapter={() => navigateToChapter(nextChapterId)}
+                />
+            )}
         />
     );
+    
 }
 
 export default ChapterImagesScreen

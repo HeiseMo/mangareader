@@ -111,7 +111,13 @@ function MangaDetailScreen({ route, navigation }) {
             <TouchableOpacity
                 key={index}
                 style={dynamicStyles.mangaChapterItem}
-                onPress={() => navigation.navigate('ChapterImages', { chapterId: chapter.id, mangaId: manga.id, title: chapter.title.replace(/^.*?(\d+).*$/, 'Chapter $1') })}
+                onPress={() => navigation.navigate('ChapterImages', {
+                    chapterId: chapter.id,
+                    mangaId: manga.id,
+                    thumbnail: manga.thumbnail,
+                    chapters: chapters, // Include the entire chapters array
+                    title: chapter.title.replace(/^.*?(\d+).*$/, 'Chapter $1')
+                  })}
             >
                 <Text style={dynamicStyles.chapterTitleStyle}>{chapter.title}</Text>
                 {readingProgress[chapter.id] === 'inProgress' && (

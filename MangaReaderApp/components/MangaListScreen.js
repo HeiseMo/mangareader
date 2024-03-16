@@ -11,7 +11,7 @@ import { BASE_URL } from '../constants'; // Adjust the path according to where y
 function MangaListScreen({ navigation }) {
     const { theme } = useTheme(); // Use your custom hook to get the current theme
     // Assuming you have a styles function that generates dynamic styles based on the theme and screenWidth
-    const dynamicStyles = styles(theme, Dimensions.get('window').width);
+    const dynamicStyles = styles(theme, Dimensions.get('window').width, Dimensions.get('window').height);
     const [mangaList, setMangaList] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
@@ -81,6 +81,7 @@ function MangaListScreen({ navigation }) {
     return (
         <View style={dynamicStyles.container}>
         <View style={dynamicStyles.searchBarContainer}>
+        <Text style={dynamicStyles.settingsText}>Search</Text>
           <TextInput
             style={dynamicStyles.searchBar}
             value={searchQuery}

@@ -1,10 +1,12 @@
+import { text } from '@fortawesome/fontawesome-svg-core';
 import { StyleSheet } from 'react-native';
 
-const styles = (theme, screenWidth) => {
+const styles = (theme, screenWidth, screenHeight) => {
   const isDark = theme === 'dark';
   const backgroundColor = isDark ? '#010101' : '#F2F2F2';
-  const textColor = isDark ? '#FFFFFF' : '#000000';
-  const containerColor = isDark ? '#161B22' : '#F2F2F2';
+  const textColor = isDark ? '#cccccc' : '#9e9e9e';
+  const headerTextColor = isDark ? '#cccccc' : '#010101';
+  const containerColor = isDark ? '#161B22' : '#FFFFFF';
   const colorBorder = '#ccc';
 
 return StyleSheet.create({
@@ -117,7 +119,7 @@ return StyleSheet.create({
       borderRadius: 8, // Rounded corners for a modern touch
     },
     chapterTitleStyle: {
-      fontSize: 17, // Slightly larger font size for readability
+      fontSize: 14, // Slightly larger font size for readability
       color: theme === 'dark' ? '#E1E1E1' : '#212121', // High contrast text color
       fontWeight: '500', // Medium font weight for a cleaner appearance
     },
@@ -130,31 +132,34 @@ return StyleSheet.create({
       // Consider using FontAwesome icons that fit the flat design, such as solid circles or checks
     },
     mangaListContainer: {
-      flex: 1,
       backgroundColor: theme === 'dark' ? '#010101' : '#F2F2F2',
+
     },
     mangaListItem: {
-      flex: 1,
-      margin: 5, // Add margins for spacing between grid items
+      flex: 0,
+      margin: 5, // Add vertical margins for spacing between grid items
+      width: (screenWidth/2)-28, // Full width of the item
       borderRadius: 10, // Rounded corners for thumbnails
-      height: 330,
       overflow: 'hidden', // Ensures the borderRadius is applied to the child Image
-      backgroundColor: theme === 'dark' ? '#161B22' : 'white',
+      backgroundColor: containerColor,
       shadowColor: '#000',
       shadowOpacity: 0.1,
       shadowRadius: 3,
       alignItems: 'center',
       justifyContent: 'center',
-
+      // Use 'cover' resizeMode when there is more than one image,
+      // 'contain' when there is only one
+      resizeMode: 'contain',
     },
     mangaListThumbnail: {
-      width: '100%', // Full width of the item
+      width: 'auto', // Full width of the item
+      height: 330,
       aspectRatio: 3 / 4, // Maintain aspect ratio of thumbnails
       resizeMode: 'contain', // Cover the item area completely
     },
     mangaListTitle: {
       fontSize: 18,
-      color: textColor,
+      color: headerTextColor,
       fontWeight: '600',
       flexShrink: 1,
     },
@@ -164,7 +169,7 @@ return StyleSheet.create({
     searchBar: {
       height: 40,
       backgroundColor: theme === 'dark' ? '#161B22' : 'white',
-      color: textColor,
+      color: headerTextColor,
       borderRadius: 10,
       paddingHorizontal: 10,
     },
@@ -181,7 +186,7 @@ return StyleSheet.create({
       marginBottom: 5,
       marginLeft: 20,
       letterSpacing: -0.5,
-      color: textColor,
+      color: headerTextColor,
       
   },
 
@@ -192,12 +197,13 @@ return StyleSheet.create({
       paddingVertical: 25,
       paddingHorizontal: 20,
       borderColor: '#ccc',
-      color: textColor,
+      color: headerTextColor,
       selectedButtonColor: 'white'
   },
   settingsText: {
       fontSize: 14,
-      color: "#9e9e9e",
+      color: headerTextColor,
+      fontWeight: "bold",
   },
   radioGroup: {
     height: "20%",
@@ -216,6 +222,8 @@ return StyleSheet.create({
     borderRadius: 10, // Adjust this value as needed for the desired curvature
     borderColor: theme === 'dark' ? '#606266' : '#ccc',// Sets the border color
     borderWidth: 1, // You need to specify a borderWidth to show the border
+    flexDirection: 'column',
+
   },
   infoGroup:{
     height: "10%",
@@ -269,6 +277,51 @@ radioButtonSelected: {
     backgroundColor: '#606266', // Light grey color, adjust based on your theme or preference
     marginVertical: 8, // Provides vertical space around the line, adjust as needed
   },
+  buttonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    textAlign: 'center',
+},
+toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    width: '100%',
+    paddingVertical: 10,
+    color: textColor,
+},
+readingModeText: {
+  color: headerTextColor
+},
+navigationShadowBox: {
+  flexDirection: 'row',
+  alignItems: 'center',
+height: 70,
+  borderTopWidth: 1,
+  borderTopColor: colorBorder,
+  width: '100%',
+  backgroundColor: containerColor
+},
+navigationButton: {
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 5,
+  flex: 1, // Ensure buttons take up equal space
+},
+navigationButtonText: {
+  color: headerTextColor,
+  fontSize: 16,
+  textAlign: 'center', // Ensure text is centered within the button
+},
+verticalLine: {
+  height: '100%',
+  width: 1,
+  backgroundColor: colorBorder,
+  position: 'absolute',
+  left: '50%',
+  transform: [{ translateX: -0.5 }], // Center the line precisely
+},
+
   });
 }
 export default styles;
