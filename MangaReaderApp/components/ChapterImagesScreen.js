@@ -141,7 +141,7 @@ function ChapterImagesScreen({ route }) {
                 console.error(error.config);
               });
     };
-
+/*
     const navigateToChapter = (newChapterId) => {
         const newChapter = chapters.find(ch => ch.id === newChapterId);
         if (newChapter) {
@@ -161,7 +161,7 @@ function ChapterImagesScreen({ route }) {
         }
     };
     
-
+*/
 
 
     return (
