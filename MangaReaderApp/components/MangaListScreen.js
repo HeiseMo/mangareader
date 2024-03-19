@@ -6,7 +6,7 @@ import { parseString } from 'react-native-xml2js';
 import { useTheme } from '../ThemeContext'; // Adjust the import path according to your project structure
 import styles from '../Styles.js';
 import { BASE_URL } from '../constants'; // Adjust the path according to where you placed the constants.js file
-
+import { AUTH_TOKEN, API_KEY } from '@env';
 
 function MangaListScreen({ navigation }) {
     const { theme } = useTheme(); // Use your custom hook to get the current theme
@@ -15,8 +15,6 @@ function MangaListScreen({ navigation }) {
     const [mangaList, setMangaList] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
-
-
 
     useEffect(() => {
         fetchManga();
@@ -39,7 +37,7 @@ function MangaListScreen({ navigation }) {
         activeOpacity={0.7}
     >
         <Image
-        source={{ uri: `${BASE_URL}${manga.thumbnail}&cacheBuster=${Date.now()}` }}
+        source={{ uri: `${BASE_URL}${manga.thumbnail}` }}
         style={dynamicStyles.mangaListThumbnail}
         />
         <Text style={dynamicStyles.mangaListTitle}>{manga.title}</Text>
@@ -47,8 +45,15 @@ function MangaListScreen({ navigation }) {
     );
     const filteredMangaList = mangaList.filter(manga => 
         manga.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      const fetchManga = () => {
+    );
+    const api = axios.create({
+		baseURL: BASE_URL,
+		headers: {
+			Authorization: `Bearer ${AUTH_TOKEN}`,
+		}
+  	});
+
+    const fetchManga = () => {
         return new Promise((resolve, reject) => { 
             axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/libraries/1`)
                 .then(response => {
