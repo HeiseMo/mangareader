@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, View, TouchableOpacity, Image, Text, FlatList } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Image, Text, FlatList, ActivityIndicator } from 'react-native';
 import { Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -9,11 +9,14 @@ import { useTheme } from '../ThemeContext';
 import styles from '../Styles.js';
 import { BASE_URL } from '../constants'; 
 import ChapterNavigationShadowBox from './ChapterNavigationShadowBox';
+global.Buffer = global.Buffer || require('buffer').Buffer;
+import { AUTH_TOKEN, API_KEY } from '@env';
 
 const screenWidth = Dimensions.get('window').width;
+
 function ChapterImagesScreen({ route }) {
     const navigation = useNavigation(); // Hook to get access to the navigation object
-    const { chapterId, mangaId, thumbnail, chapters, title } = route.params;
+    const { chapterId, mangaId, pages, chapters, title } = route.params;
     const [imageUrls, setImageUrls] = useState([]);
     const [imageHeights, setImageHeights] = useState({});
     const [prevChapterId, setPrevChapterId] = useState(null);
@@ -21,6 +24,46 @@ function ChapterImagesScreen({ route }) {
     const { theme } = useTheme(); 
     const dynamicStyles = styles(theme, screenWidth);
     const scrollViewRef = useRef(); // Reference to ScrollView for programmatically scrolling (if needed)
+    const [loading, setLoading] = useState(true);
+    const [atEnd, setAtEnd] = useState(false);
+    
+
+    const api = axios.create({
+        baseURL: BASE_URL,
+        headers: {
+            Authorization: AUTH_TOKEN,
+        }
+    });
+
+    const apiFetch = async () => {
+        const imageUris = []; // Array to store the image URIs
+        let currentPage = 0; // Variable to track the current page
+    
+        while (currentPage < pages) {
+            try {
+                console.log('page', currentPage);
+                const url = `kavita/api/Reader/image?chapterId=${chapterId}&page=${currentPage}&apiKey=${API_KEY}`;
+                const response = await api.get(url, { responseType: 'arraybuffer' });
+    
+                if (response && response.data) {
+                    const binaryData = response.data;
+                    const base64Image = Buffer.from(binaryData).toString('base64');
+                    const imageUri = `data:image/jpeg;base64,${base64Image}`;
+                    
+                    imageUris.push(imageUri); // Add the image URI to the array
+                    currentPage++; // Move to the next page on successful fetch
+                } else {
+                    console.error(`Error fetching image for page ${currentPage}`);
+                }
+            } catch (error) {
+                console.error(`Error fetching image for page ${currentPage}:`, error);
+                // Retry fetching the image for the current page on error
+            }
+        }
+    
+        setImageUrls(imageUris); // Set the image URLs using the provided setImageUrls function
+    };
+
     useEffect(() => {
         const setChapterInProgressIfNeeded = async () => {
             try {
@@ -36,7 +79,7 @@ function ChapterImagesScreen({ route }) {
             }
         };
 
-        fetchChapterImages(chapterId, mangaId);
+        apiFetch();
         setChapterInProgressIfNeeded();
         
     }, [chapterId, mangaId]);
@@ -60,7 +103,8 @@ function ChapterImagesScreen({ route }) {
             // This assumes imageUrls is populated once the new chapter's images are loaded
             scrollViewRef.current.scrollToOffset({ animated: true, offset: 0 });
         }
-    }, [imageUrls]); 
+    }, [imageUrls]);
+
     const markChapterAsCompleted = async () => {
         await updateChapterState(chapterId, 'completed');
     };
@@ -82,114 +126,51 @@ function ChapterImagesScreen({ route }) {
         const scaleFactor = width / screenWidth;
         const imageHeight = height / scaleFactor;
         setImageHeights(prevHeights => ({ ...prevHeights, [index]: imageHeight }));
-    };
-
-    const fetchChapterImages = (chapterId, mangaId) => {
-        console.log(`Fetching chapter images for mangaId: ${mangaId}, chapterId: ${chapterId}`);
-        axios.get(`${BASE_URL}/kavita/api/opds/a828d819-35d0-4810-8cc8-9feaaf440123/series/${mangaId}/volume/8/chapter/${chapterId}`)
-            .then((response) => {
-                console.log(`Response received for chapter images.`);
-                parseString(response.data, { explicitArray: false, mergeAttrs: true }, (err, result) => {
-                    if (err) {
-                        console.error('Error parsing XML:', err);
-                        return;
-                    }
-    
-                    // Debugging the parsed result
-                    console.log(`Parsed result for chapter images:`, result);
-    
-                    // Assuming result.feed.entry is directly accessible and correctly parsed
-                    const entry = result.feed.entry;
-                    if (!entry) {
-                        console.error('No entry found in the response:', result);
-                        return;
-                    }
-    
-                    // Look for the specific link with streaming information
-                    const streamLink = entry.link.find(link => link.rel === "http://vaemendis.net/opds-pse/stream" && link.type === "image/jpeg");
-    
-                    if (!streamLink) {
-                        console.error('Expected stream link not found. Available links:', entry.link);
-                        return;
-                    }
-    
-                    // Parse the pageCount and generate image URLs
-                    const pageCount = parseInt(streamLink["p5:count"], 10);
-                    const urlTemplate = `${BASE_URL}${streamLink.href}&cacheBuster=${Date.now()}`;
-                    const imageUrls = Array.from({ length: pageCount }, (_, i) =>
-                        urlTemplate.replace('{pageNumber}', i)
-                    );
-    
-                    setImageUrls(imageUrls);
-                });
-            })
-            .catch((error) => {
-                console.error('Error fetching chapter images:', error);
-                if (error.response) {
-                  // The request was made and the server responded with a status code
-                  // that falls out of the range of 2xx
-                  console.error(error.response.data);
-                  console.error(error.response.status);
-                  console.error(error.response.headers);
-                } else if (error.request) {
-                  // The request was made but no response was received
-                  console.error(error.request);
-                } else {
-                  // Something happened in setting up the request that triggered an Error
-                  console.error('Error', error.message);
-                }
-                console.error(error.config);
-              });
-    };
-/*
-    const navigateToChapter = (newChapterId) => {
-        const newChapter = chapters.find(ch => ch.id === newChapterId);
-        if (newChapter) {
-            const newTitle = newChapter.title.replace(/^.*?(\d+).*$/, 'Chapter $1'); // Adjust this to your title format
-            console.log(newTitle, "new title");
-            navigation.setOptions({ title: newTitle }); // Dynamically update the title
-    
-            navigation.navigate('ChapterImages', {
-                chapterId: newChapterId,
-                mangaId: mangaId,
-                thumbnail: thumbnail,
-                chapters: chapters, // Pass the chapters list if needed
-                title: newTitle // Pass the new title for initial render
-            });
-        } else {
-            console.error('Chapter not found');
+        
+        if(index == imageUrls.length - 1) {
+            console.log(index);
+            setAtEnd(true);
         }
+        setLoading(false);
     };
-    
-*/
 
 
     return (
-        <FlatList
-            ref={scrollViewRef}
-            style={dynamicStyles.scrollView}
-            data={imageUrls}
-            renderItem={({ item, index }) => (
-                <Image
-                    key={index}
-                    source={{ uri: item }} 
-                    style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
-                    onLoad={event => handleImageLoaded(index, event)}
-                />
+        <View>
+            {loading && (
+                <View style={styles.mangaListItem}>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                    <Text style={styles.mangaListTitle}>Loading chapter...</Text>
+                </View>
             )}
-            onEndReachedThreshold={0.5}
-            onEndReached={({ distanceFromEnd }) => {
-                if (distanceFromEnd >= 0) {
-                    markChapterAsCompleted();
-                }
-            }}
-            ListFooterComponent={() => (
-                <ChapterNavigationShadowBox
-                    onPreviousChapter={() => navigateToChapter(prevChapterId)}
-                    onNextChapter={() => navigateToChapter(nextChapterId)}
-                />
-            )}
-        />
+            <FlatList
+                ref={scrollViewRef}
+                style={dynamicStyles.scrollView}
+                data={imageUrls}
+                initialNumToRender={2}
+                renderItem={({ item, index }) => (
+                    <Image
+                        key={index}
+                        source={{ uri: item }}
+                        style={[dynamicStyles.chapterImage, { height: imageHeights[index] || 200 }]}
+                        onLoad={(event) => handleImageLoaded(index, event)}
+                        
+                    />
+                )}
+                onEndReachedThreshold={0.5}
+                onEndReached={() => {
+                    if (atEnd) {
+                        markChapterAsCompleted();
+                    }
+                }}
+                ListFooterComponent={() => atEnd && (
+                    <ChapterNavigationShadowBox
+                        onPreviousChapter={() => navigateToChapter(prevChapterId)}
+                        onNextChapter={() => navigateToChapter(nextChapterId)}
+                    />
+                )}
+            />
+        </View>
     );
     
 }
