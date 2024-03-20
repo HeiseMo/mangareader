@@ -45,7 +45,6 @@ function MangaDetailScreen({ route, navigation }) {
                       formattedChapters.push(...chapterData);
                 }
                 setChapters(formattedChapters);
-                // setChapters(response.data[0].chapters);
             }
         } catch (error) {
             console.error('Error fetching chapter info:', error);
@@ -55,7 +54,7 @@ function MangaDetailScreen({ route, navigation }) {
     useEffect(() => {
         fetchSeriesInfo();
         // checkBookmarkStatus();
-        console.log(manga)
+        console.log(`Manga id: ${manga.id}; Manga title: ${manga.title}; Manga thumbnail: ${manga.thumbnail != null}`);
     }, []);
 
     useFocusEffect(
@@ -103,7 +102,7 @@ function MangaDetailScreen({ route, navigation }) {
     <ScrollView style={dynamicStyles.container}>
         <View style={dynamicStyles.mangaDetailsContainer}>
         <View style={dynamicStyles.mangaImageWrapper}>
-            <Image source={{ uri: `${manga.thumbnail}` }} style={dynamicStyles.mangaThumbnail} />
+            <Image source={{ uri: manga.thumbnail }} style={dynamicStyles.mangaThumbnail} />
             <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.bookmarkIconStyle}>
             <FontAwesomeIcon style={dynamicStyles.generalBookmarkIcon} icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} size={24} />
             </TouchableOpacity>

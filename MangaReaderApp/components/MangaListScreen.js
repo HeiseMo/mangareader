@@ -13,19 +13,25 @@ function MangaListScreen({ navigation }) {
     const { theme } = useTheme(); // Use your custom hook to get the current theme
     // Assuming you have a styles function that generates dynamic styles based on the theme and screenWidth
     const dynamicStyles = styles(theme, Dimensions.get('window').width, Dimensions.get('window').height);
-    const [mangaList, setMangaList] = useState([]);
+   	const [mangaList, setMangaList] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        fetchManga();
-		setCoverImage();
+		fetchManga();
     }, []);
+
+	useEffect(() => {
+		if (mangaList.length > 0) {
+			setCoverImage();
+		} else {
+			console.log('No manga found');
+		}
+	}, [mangaList]);
 
     const onRefresh = () => {
         setRefreshing(true);
         fetchManga().then(() => {
-			setCoverImage();
           	setRefreshing(false);
         }).catch((error) => {
 			console.error('Failed to refresh manga list:', error);
@@ -40,7 +46,7 @@ function MangaListScreen({ navigation }) {
 			activeOpacity={0.7}
 		>
 			<Image
-				source={{ uri: `${manga.thumbnail}` }}
+				source={{ uri: manga.thumbnail }}
 				style={dynamicStyles.mangaListThumbnail}
 			/>
 			<Text style={dynamicStyles.mangaListTitle}>{manga.title}</Text>
@@ -58,40 +64,42 @@ function MangaListScreen({ navigation }) {
 		}
   	});
 
-    const fetchManga = () => {
+	  const fetchManga = async () => {
 		const data = {
 			"id": 0,
 			"statements": [],
 			"combination": 0,
 			"sortOptions": {
-			  "sortField": 1,
-			  "isAscending": true
+				"sortField": 1,
+				"isAscending": true
 			},
 			"limitTo": 0
 		};
-        return new Promise((resolve, reject) => { 
-			const url = `kavita/api/Series/all-v2`;
-			api.post(url, data)
-				.then(response => {
-					if(response && response.data){
-						const formattedSeries = response.data.map(series => ({
-							id: series.id,
-							title: series.name,
-						}));
-						console.log(formattedSeries);
-						setMangaList(formattedSeries);
-						resolve();
-					}
-				})
-				.catch(error => {
-						console.error(error);
-						reject(error);
-				});
-        });
-    };
+	
+		const url = `kavita/api/Series/all-v2`;
+	
+		try {
+			const response = await api.post(url, data);
+			if (response && response.data) {
+				const formattedSeries = response.data.map(series => ({
+					id: series.id,
+					title: series.name,
+				}));
+				setMangaList(formattedSeries);
+				// Assuming you might have other async tasks here, you can await them within Promise.all()
+				await Promise.all([/* other async tasks */]);
+			} else {
+				throw new Error("No data received from the server");
+			}
+		} catch (error) {
+			console.error(error);
+			throw error;
+		}
+	};
 
 	const setCoverImage = async() => {
 		const fetchCoverImage = async(seriesId) => {
+			
 			const url = `kavita/api/Image/series-cover?seriesId=${seriesId}&apiKey=${API_KEY}`;
 			try {
 				const response = await api.get(url, {responseType: 'arraybuffer'});
@@ -109,14 +117,15 @@ function MangaListScreen({ navigation }) {
 				console.error(`Error fetching image for SeriesId ${seriesId}`);
 			}
 		};
-		const promise = [];
-		for (const manga of mangaList) {
-			promise.push(fetchCoverImage(manga.id).then((thumbnail) => ({...manga, thumbnail})));
+		if(mangaList[0].thumbnail == null) {
+			const promise = [];
+			for (const manga of mangaList) {
+				promise.push(fetchCoverImage(manga.id).then((thumbnail) => ({...manga, thumbnail})));
+			}
+			const updatedMangaList = await Promise.all(promise);
+			setMangaList(updatedMangaList);
 		}
-		const updatedMangaList = await Promise.all(promise);
-		setMangaList(updatedMangaList);
 	};
-
 
     return (
         <View style={dynamicStyles.container}>
