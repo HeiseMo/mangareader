@@ -9,7 +9,7 @@ import { faBookmark as faBookmarkSolid, faStar, faShareAlt, faCheckCircle, faCir
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { useTheme } from '../ThemeContext'; // Adjust the path as necessary
 import { BASE_URL } from '../constants'; // Adjust the path according to where you placed the constants.js file
-
+import { AUTH_TOKEN, API_KEY } from '@env';
 import styles from '../Styles.js';
 
 const screenWidth = Dimensions.get('window').width;
@@ -21,11 +21,41 @@ function MangaDetailScreen({ route, navigation }) {
     const [readingProgress, setReadingProgress] = useState({});
     const { theme } = useTheme(); // Use your custom hook to get the current theme
     const dynamicStyles = styles(theme, screenWidth);
-    const [chapterTitle, setChapterTitle] = useState('');
+
+    const api = axios.create({
+        baseURL: BASE_URL,
+        headers: {
+            Authorization: `Bearer ${AUTH_TOKEN}`,
+        }
+    });
+
+    const fetchSeriesInfo = async() => {
+        try {
+            const url = `kavita/api/Series/volumes?seriesId=${manga.id}`;
+            const response = await api.get(url);
+            if (response && response.data) {
+                console.log("length of array ", response.data.length);
+                const formattedChapters = [];
+                for(let i = 0; i < response.data.length; i++) {
+                    const chapterData = response.data[i].chapters.map(chapter => ({
+                        id: chapter.id,
+                        title: response.data[i].name === "0" ? chapter.title : response.data[i].name,
+                        pages: chapter.pages,
+                      }));
+                      formattedChapters.push(...chapterData);
+                }
+                setChapters(formattedChapters);
+                // setChapters(response.data[0].chapters);
+            }
+        } catch (error) {
+            console.error('Error fetching chapter info:', error);
+        }
+    };
 
     useEffect(() => {
-          fetchChapters();
-          checkBookmarkStatus();
+        fetchSeriesInfo();
+        // checkBookmarkStatus();
+        console.log(manga)
     }, []);
 
     useFocusEffect(
@@ -33,33 +63,6 @@ function MangaDetailScreen({ route, navigation }) {
             fetchReadingProgress();
         }, [])
     );
-        console.log(manga)
-    const fetchChapters = () => {
-        axios.get(`${BASE_URL}/kavita/api/opds/fa66341c-d3a3-432b-bcb1-d83593ca8103/series/${manga.id}`)
-            .then(response => {
-                parseString(response.data, (err, result) => {
-                    if (err) {
-                        console.error('Error parsing XML:', err);
-                        return;
-                    }
-                    if (result.feed && result.feed.entry) {
-                        const chapterEntries = result.feed.entry;
-                        const formattedChapters = chapterEntries.map(entry => ({
-                            id: entry.id[0],
-                            title: entry.title[0],
-                            // Add other chapter details you need here
-                        }));
-                        setChapters(formattedChapters);
-                        
-                    } else {
-                        setChapters([]);
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching chapters:', error);
-            });
-    };
 
     const fetchReadingProgress = async () => {
         try {
@@ -70,7 +73,7 @@ function MangaDetailScreen({ route, navigation }) {
         }
     };
 
-  const checkBookmarkStatus = async () => {
+    const checkBookmarkStatus = async () => {
         try {
         const bookmarkedMangas = await AsyncStorage.getItem('bookmarkedMangas');
         const bookmarks = bookmarkedMangas ? JSON.parse(bookmarkedMangas) : [];
@@ -100,7 +103,7 @@ function MangaDetailScreen({ route, navigation }) {
     <ScrollView style={dynamicStyles.container}>
         <View style={dynamicStyles.mangaDetailsContainer}>
         <View style={dynamicStyles.mangaImageWrapper}>
-            <Image source={{ uri: `${BASE_URL}${manga.thumbnail}&cacheBuster=${Date.now()}` }} style={dynamicStyles.mangaThumbnail} />
+            <Image source={{ uri: `${manga.thumbnail}` }} style={dynamicStyles.mangaThumbnail} />
             <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.bookmarkIconStyle}>
             <FontAwesomeIcon style={dynamicStyles.generalBookmarkIcon} icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} size={24} />
             </TouchableOpacity>
@@ -114,12 +117,12 @@ function MangaDetailScreen({ route, navigation }) {
                 onPress={() => navigation.navigate('ChapterImages', {
                     chapterId: chapter.id,
                     mangaId: manga.id,
-                    thumbnail: manga.thumbnail,
+                    pages: chapters[index].pages,
                     chapters: chapters, // Include the entire chapters array
-                    title: chapter.title.replace(/^.*?(\d+).*$/, 'Chapter $1')
+                    title: "Chapter "+chapter.title
                   })}
             >
-                <Text style={dynamicStyles.chapterTitleStyle}>{chapter.title}</Text>
+                <Text style={dynamicStyles.chapterTitleStyle}>{manga.title + ' - Chapter ' + chapter.title}</Text>
                 {readingProgress[chapter.id] === 'inProgress' && (
                 <FontAwesomeIcon icon={faCircle} size={24} color="gold" />
                 )}
