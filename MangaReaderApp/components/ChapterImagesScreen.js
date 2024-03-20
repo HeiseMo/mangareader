@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, View, TouchableOpacity, Image, Text, FlatList, ActivityIndicator } from 'react-native';
-import { Dimensions } from 'react-native';
+import { Dimensions, View, TouchableOpacity, Image, Text, FlatList, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { parseString } from 'react-native-xml2js';
 import { useTheme } from '../ThemeContext'; 
 import styles from '../Styles.js';
 import { BASE_URL } from '../constants'; 
@@ -26,7 +24,6 @@ function ChapterImagesScreen({ route }) {
     const scrollViewRef = useRef(); // Reference to ScrollView for programmatically scrolling (if needed)
     const [loading, setLoading] = useState(true);
     const [atEnd, setAtEnd] = useState(false);
-    
 
     const api = axios.create({
         baseURL: BASE_URL,
@@ -36,8 +33,11 @@ function ChapterImagesScreen({ route }) {
     });
 
     const apiFetch = async () => {
-        const fetchPage = async (page) => {
+
+        const maxRetries = 3;
+        const fetchPage = async (page, attempt=0) => {
             try {
+                console.log(`in fetch page ${page} attempt ${attempt}`);
                 const url = `kavita/api/Reader/image?chapterId=${chapterId}&page=${page}&apiKey=${API_KEY}`;
                 const response = await api.get(url, { responseType: 'arraybuffer' });
     
@@ -48,11 +48,17 @@ function ChapterImagesScreen({ route }) {
                     return imageUri; // Return the image URI
                 } else {
                     console.error(`Error fetching image for page ${page}`);
+                    console.error("caught in else");
                     return null; // Return null if there's an error or no response data
                 }
             } catch (error) {
-                console.error(`Error fetching image for page ${page}:`, error);
-                return null; // Return null on error
+                console.error(`Attempt ${attempt} failed for page ${page}:`, error);
+                if (attempt < maxRetries) {
+                    return fetchPage(page, attempt + 1); // Retry fetching the image
+                } else {
+                    return null; // Return null if all retries fail
+                }
+
             }
         };
     
@@ -62,9 +68,7 @@ function ChapterImagesScreen({ route }) {
         }
     
         const imageUris = await Promise.all(promises);
-    
         const validImageUris = imageUris.filter(uri => uri !== null);
-    
         setImageUrls(validImageUris); 
     };
     
@@ -83,7 +87,6 @@ function ChapterImagesScreen({ route }) {
                 console.error('Error setting chapter to inProgress:', error);
             }
         };
-
         apiFetch();
         setChapterInProgressIfNeeded();
         
@@ -92,7 +95,6 @@ function ChapterImagesScreen({ route }) {
     useEffect(() => {
         if (chapters) {
           const currentIndex = chapters.findIndex(ch => ch.id === chapterId.toString());
-
           const prevChapterId = currentIndex > 0 ? chapters[currentIndex - 1].id : null;
           const nextChapterId = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1].id : null;
           console.log(nextChapterId, "next");
@@ -139,7 +141,6 @@ function ChapterImagesScreen({ route }) {
         setLoading(false);
     };
 
-
     return (
         <View>
             {loading && (
@@ -177,7 +178,6 @@ function ChapterImagesScreen({ route }) {
             />
         </View>
     );
-    
 }
 
 export default ChapterImagesScreen
