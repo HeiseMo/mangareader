@@ -33,6 +33,7 @@ function ChapterImagesScreen({ route }) {
     });
 
     const apiFetch = async () => {
+
         const maxRetries = 3;
         const fetchPage = async (page, attempt=0) => {
             try {
@@ -57,6 +58,7 @@ function ChapterImagesScreen({ route }) {
                 } else {
                     return null; // Return null if all retries fail
                 }
+
             }
         };
     
@@ -69,6 +71,7 @@ function ChapterImagesScreen({ route }) {
         const validImageUris = imageUris.filter(uri => uri !== null);
         setImageUrls(validImageUris); 
     };
+    
 
     useEffect(() => {
         const setChapterInProgressIfNeeded = async () => {
