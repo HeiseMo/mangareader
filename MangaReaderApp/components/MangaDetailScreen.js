@@ -10,7 +10,6 @@ import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-i
 import { useTheme } from '../ThemeContext'; // Adjust the path as necessary
 import { BASE_URL } from '../constants'; // Adjust the path according to where you placed the constants.js file
 import { AUTH_TOKEN, API_KEY } from '@env';
-
 import styles from '../Styles.js';
 
 const screenWidth = Dimensions.get('window').width;
@@ -32,16 +31,19 @@ function MangaDetailScreen({ route, navigation }) {
 
     const fetchSeriesInfo = async() => {
         try {
-            console.log(AUTH_TOKEN);
             const url = `kavita/api/Series/volumes?seriesId=${manga.id}`;
             const response = await api.get(url);
             if (response && response.data) {
-                console.log("length of array ", response.data[0].chapters[0].pages);
-                const formattedChapters = response.data[0].chapters.map(chapter => ({
-                    id: chapter.id,
-                    title: chapter.title,
-                    pages: chapter.pages,
-                }));
+                console.log("length of array ", response.data.length);
+                const formattedChapters = [];
+                for(let i = 0; i < response.data.length; i++) {
+                    const chapterData = response.data[i].chapters.map(chapter => ({
+                        id: chapter.id,
+                        title: response.data[i].name === "0" ? chapter.title : response.data[i].name,
+                        pages: chapter.pages,
+                      }));
+                      formattedChapters.push(...chapterData);
+                }
                 setChapters(formattedChapters);
                 // setChapters(response.data[0].chapters);
             }
@@ -71,7 +73,7 @@ function MangaDetailScreen({ route, navigation }) {
         }
     };
 
-  const checkBookmarkStatus = async () => {
+    const checkBookmarkStatus = async () => {
         try {
         const bookmarkedMangas = await AsyncStorage.getItem('bookmarkedMangas');
         const bookmarks = bookmarkedMangas ? JSON.parse(bookmarkedMangas) : [];
@@ -101,7 +103,7 @@ function MangaDetailScreen({ route, navigation }) {
     <ScrollView style={dynamicStyles.container}>
         <View style={dynamicStyles.mangaDetailsContainer}>
         <View style={dynamicStyles.mangaImageWrapper}>
-            <Image source={{ uri: `${BASE_URL}${manga.thumbnail}` }} style={dynamicStyles.mangaThumbnail} />
+            <Image source={{ uri: `${manga.thumbnail}` }} style={dynamicStyles.mangaThumbnail} />
             <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.bookmarkIconStyle}>
             <FontAwesomeIcon style={dynamicStyles.generalBookmarkIcon} icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} size={24} />
             </TouchableOpacity>
