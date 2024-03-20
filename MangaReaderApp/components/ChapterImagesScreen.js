@@ -15,6 +15,7 @@ const screenWidth = Dimensions.get('window').width;
 function ChapterImagesScreen({ route }) {
     const navigation = useNavigation(); // Hook to get access to the navigation object
     const { chapterId, mangaId, pages, chapters, title } = route.params;
+    const [fetchedImageUrls, setFetchedImageUrls] = useState([]);
     const [imageUrls, setImageUrls] = useState([]);
     const [imageHeights, setImageHeights] = useState({});
     const [prevChapterId, setPrevChapterId] = useState(null);
@@ -34,6 +35,7 @@ function ChapterImagesScreen({ route }) {
 
     const apiFetch = async () => {
         const maxRetries = 3;
+        const pageSize = 20;
         const fetchPage = async (page, attempt=0) => {
             try {
                 console.log(`in fetch page ${page} attempt ${attempt}`);
@@ -68,7 +70,17 @@ function ChapterImagesScreen({ route }) {
         const imageUris = await Promise.all(promises);
         const validImageUris = imageUris.filter(uri => uri !== null);
         setImageUrls(validImageUris); 
+        // for (let page = 0; page < pages; page += pageSize) {
+        //     const chunkSize = Math.min(pageSize, pages - page); // Handle the last chunk
+        //     for (let i = 0; i < chunkSize; i++) {
+        //         promises.push(fetchPage(page + i));
+        //     }
+        // }
+        // const chunkUris = await Promise.all(promises);
+        // setImageUrls(chunkUris.filter(uri => uri !== null));
     };
+
+    
 
     useEffect(() => {
         const setChapterInProgressIfNeeded = async () => {
@@ -102,7 +114,7 @@ function ChapterImagesScreen({ route }) {
         }
       }, [chapterId, chapters]);
 
-      useEffect(() => {
+    useEffect(() => {
         if (scrollViewRef.current && imageUrls.length > 0) {
             // This assumes imageUrls is populated once the new chapter's images are loaded
             scrollViewRef.current.scrollToOffset({ animated: true, offset: 0 });
@@ -132,7 +144,7 @@ function ChapterImagesScreen({ route }) {
         setImageHeights(prevHeights => ({ ...prevHeights, [index]: imageHeight }));
         
         if(index == imageUrls.length - 1) {
-            console.log(index);
+            console.log("on image : ", index);
             setAtEnd(true);
         }
         setLoading(false);
@@ -150,7 +162,7 @@ function ChapterImagesScreen({ route }) {
                 ref={scrollViewRef}
                 style={dynamicStyles.scrollView}
                 data={imageUrls}
-                initialNumToRender={2}
+                initialNumToRender={10}
                 renderItem={({ item, index }) => (
                     <Image
                         key={index}
