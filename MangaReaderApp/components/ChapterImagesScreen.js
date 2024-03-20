@@ -36,33 +36,38 @@ function ChapterImagesScreen({ route }) {
     });
 
     const apiFetch = async () => {
-        const imageUris = []; // Array to store the image URIs
-        let currentPage = 0; // Variable to track the current page
-    
-        while (currentPage < pages) {
+        const fetchPage = async (page) => {
             try {
-                console.log('page', currentPage);
-                const url = `kavita/api/Reader/image?chapterId=${chapterId}&page=${currentPage}&apiKey=${API_KEY}`;
+                const url = `kavita/api/Reader/image?chapterId=${chapterId}&page=${page}&apiKey=${API_KEY}`;
                 const response = await api.get(url, { responseType: 'arraybuffer' });
     
                 if (response && response.data) {
                     const binaryData = response.data;
                     const base64Image = Buffer.from(binaryData).toString('base64');
                     const imageUri = `data:image/jpeg;base64,${base64Image}`;
-                    
-                    imageUris.push(imageUri); // Add the image URI to the array
-                    currentPage++; // Move to the next page on successful fetch
+                    return imageUri; // Return the image URI
                 } else {
-                    console.error(`Error fetching image for page ${currentPage}`);
+                    console.error(`Error fetching image for page ${page}`);
+                    return null; // Return null if there's an error or no response data
                 }
             } catch (error) {
-                console.error(`Error fetching image for page ${currentPage}:`, error);
-                // Retry fetching the image for the current page on error
+                console.error(`Error fetching image for page ${page}:`, error);
+                return null; // Return null on error
             }
+        };
+    
+        const promises = [];
+        for (let page = 0; page < pages; page++) {
+            promises.push(fetchPage(page));
         }
     
-        setImageUrls(imageUris); // Set the image URLs using the provided setImageUrls function
+        const imageUris = await Promise.all(promises);
+    
+        const validImageUris = imageUris.filter(uri => uri !== null);
+    
+        setImageUrls(validImageUris); 
     };
+    
 
     useEffect(() => {
         const setChapterInProgressIfNeeded = async () => {
