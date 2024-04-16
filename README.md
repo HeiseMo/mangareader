@@ -10,7 +10,7 @@ This is a Manga Reader App built using React Native and Expo. It allows users to
 ### Installation
 1. Clone the repository: git clone https://github.com/danieltanurhan/manga-reader-app.git
 2. Install dependencies: npm install
-3. Create .env file in the mangareaderapp folder and add your own Kavita API_KEY and AUTH_TOKEN
+3. Create .env file in the mangareaderapp folder and add your own Kavita Library, API_KEY and AUTH_TOKEN variables
 4. Change BASE_URL in the constants.js file to your own Kavita library server link
 5. Start the development server: npm start
 6. Expo development tools will open in your browser, click on the "Run on Android device/emulator" or "Run on iOS simulator" button to launch the app.
