@@ -1,5 +1,5 @@
 # Manga Reader App
-This is a Manga Reader App built using React Native and Expo. It allows users to browse and read manga chapters from various sources. It uses Kavita API to get manga data.
+This is a Manga Reader App built using React Native and Expo. It allows users to browse and read manga chapters from your Kavita Library. It can be built for Android or IOS.
 
 ## Features
 - Search for manga series
